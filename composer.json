@@ -1,0 +1,29 @@
+{
+    "name": "survos/crawler-bundle",
+    "description": "Provides a way to create tests that crawl a site",
+    "type": "symfony-bundle",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Tac Tacelosky",
+            "email": "tacman@gmail.com"
+        }
+    ],
+    "require": {
+        "php": "^8.1",
+        "fabpot/goutte": "^4.0",
+        "symfony/config": "^6.1",
+        "symfony/dependency-injection": "^6.1",
+        "symfony/http-kernel": "^6.1"
+    },
+    "autoload": {
+        "psr-4": {
+            "Survos\\CrawlerBundle\\": "src/"
+        }
+    },
+    "extra": {
+        "symfony": {
+            "require": "^6.1"
+        }
+    }
+}
