@@ -98,6 +98,7 @@ class CrawlerService
     // set the goutte client to an authenticated user
     public function authenticateClient(?string $username = null, string $plainPassword=null): void
     {
+        // might be worth checking out: https://github.com/liip/LiipTestFixturesBundle/pull/62#issuecomment-622191412
         static $clients = [];
         if (!array_key_exists($username, $clients)) {
             $gouteClient = new Client();
