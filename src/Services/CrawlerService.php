@@ -25,6 +25,7 @@ class CrawlerService
         private string $loginPath,
         private string $submitButtonSelector,
         private string $plaintextPassword,
+        private string $initialPath,
         /* @todo: User Provider */
         private ManagerRegistry     $managerRegistry,
 //        private CrawlerClient       $client,
@@ -38,6 +39,14 @@ class CrawlerService
     {
 //        $this->baseUrl = 'https://127.0.0.1:8001';
 
+    }
+
+    /**
+     * @return string
+     */
+    public function getInitialPath(): string
+    {
+        return $this->initialPath;
     }
 
     public function getUsers()
@@ -131,7 +140,7 @@ class CrawlerService
 // submit that form
                 $crawler = $gouteClient->submit($form);
                 $response = $gouteClient->getResponse();
-                assert($response->getStatusCode() == 200, substr($response->getContent(), 0, 512));
+                assert($response->getStatusCode() == 200, substr($response->getContent(), 0, 512) . "\n\n" . $url);
 
 
 //            dd($response);
@@ -205,10 +214,13 @@ class CrawlerService
             return;
         }
 
-        $url = $this->baseUrl . trim($link->getPath(), '/');
+        // ugh, sloppy
+        $url = trim($this->baseUrl, '/') . '/'  . trim($link->getPath(), '/');
         assert(is_string($url));
+        assert(parse_url($url), "Invalid url: " . $url);
 //        $response = $this->cache->get(md5($url), function(CacheItem $item) use ($url, $info, $path) {
-        $request = $this->goutteClient->request('GET', $url);
+
+        $crawler = $this->goutteClient->request('GET', $url);
 
         $response = $this->goutteClient->getResponse();
 
@@ -219,7 +231,8 @@ class CrawlerService
             ->setStatusCode($status);
 
         if ($status <> 200) {
-            dd($response, $response->getStatusCode(), $link);
+
+            dd($response->getStatusCode(), $this->baseUrl . $link->getPath());
             $html = false;
         } else {
             $html = $response->getContent();

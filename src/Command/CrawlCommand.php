@@ -124,13 +124,13 @@ class CrawlCommand extends Command
         $users = $this->crawlerService->getUsers();
         $crawlerService->resetLinkList();
 
-//        foreach ([null, ...$users] as $user) {
-        foreach ($users as $user) {
+        foreach ([null, ...$users] as $user) {
+//        foreach ($users as $user) {
             $username = $user?->getUserIdentifier();
-            $io->info("Crawling as " . $username);
+            $io->info(sprintf("Crawling %s as %s", $crawlerService->getInitialPath(), $username?:'Visitor'));
             $crawlerService->authenticateClient($username);
 
-            $link = $crawlerService->addLink($username, '/');
+            $link = $crawlerService->addLink($username, $crawlerService->getInitialPath());
             $link->username = $username;
             assert(count($crawlerService->getLinkList($username)), "No links for $username");
             assert($crawlerService->getUnvisitedLink($username));
