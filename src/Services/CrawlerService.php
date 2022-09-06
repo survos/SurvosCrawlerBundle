@@ -20,6 +20,7 @@ class CrawlerService
     private ?Client $goutteClient=null;
 
     public function __construct(
+        private array $config,
         private string $baseUrl,
         private string $userClass,
         private string $loginPath,
@@ -116,6 +117,7 @@ class CrawlerService
             $this->username = $username;
             $baseUrl = $this->baseUrl;
             $clients[$username] = $gouteClient;
+
             if ($username) {
                 $crawler = $gouteClient->request('GET', $url = $baseUrl . trim($this->loginPath, '/'), [
                     'proxy' => '127.0.0.1:7080'
@@ -128,14 +130,21 @@ class CrawlerService
 
 // select the form and fill in some values
 //                $form = $crawler->filter('login_form')->form();
+                    $form = $crawler->selectButton('login_button')->form();
+                    assert($form, "login_form is not found");
                 try {
-                    $form = $crawler->selectButton($this->submitButtonSelector)->form();
+//                    $loginCrawler = new Crawler($response->getContent(), $url);
+//                    $form = $loginCrawler->form(); // first form on the page?
+//                    $form = $loginCrawler->selectButton($this->submitButtonSelector);//->form();
+//                    dd($form);
                 } catch (\Exception $exception) {
+                    echo $response->getContent();
                     throw new \Exception($this->submitButtonSelector . ' does not find a form on ' . $this->loginPath);
                 }
 //                assert($form, $this->submitButtonSelector . ' does not find a form on ' . $this->loginPath);
-                    $form['_username'] = $username;
-                $form['_password'] = $plainPassword;
+//                dd($this->config, $form->getValues());
+                $form[$this->config['username_form_variable']] = $username;
+                $form[$this->config['password_form_variable']] = $plainPassword;
 
 // submit that form
                 $crawler = $gouteClient->submit($form);

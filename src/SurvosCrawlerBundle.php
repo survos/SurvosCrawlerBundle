@@ -29,6 +29,7 @@ class SurvosCrawlerBundle extends AbstractBundle
         $builder
             ->autowire($crawler_service_id, CrawlerService::class)
             ->setPublic(true)
+            ->setArgument('$config', $config)
             ->setArgument('$userClass', $config['user_class'])
             ->setArgument('$loginPath', $config['login_path'])
             ->setArgument('$submitButtonSelector', $config['submit_button'])
