@@ -208,7 +208,7 @@ class CrawlerService
 //        $this->logger->info("Scraping " . $link->getPath());
         $link->setSeen(true);
 
-        if ($link->getDepth() > 4) {
+        if ($depth && ($link->getDepth() > $depth)) {
             return;
         }
 

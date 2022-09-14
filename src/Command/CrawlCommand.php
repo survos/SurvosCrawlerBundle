@@ -94,7 +94,7 @@ class CrawlCommand extends Command
             new InputArgument('startingLink', InputArgument::OPTIONAL, 'Link to start crawling'),
             new InputArgument('username', InputArgument::OPTIONAL, 'Username', 'o'),
             new InputArgument('password', InputArgument::OPTIONAL, 'Password', 'o'),
-            new InputOption('limit', null, InputOption::VALUE_REQUIRED, 'Limit the number of links to process, prevents infinite crawling', 20),
+            new InputOption('limit', null, InputOption::VALUE_REQUIRED, 'Limit the number of links to process, prevents infinite crawling', 0),
             new InputOption('security-firewall', null, InputOption::VALUE_REQUIRED, 'Firewall name', 'secured_area'),
             new InputOption('ignore-route-keyword', null, InputOption::VALUE_IS_ARRAY | InputOption::VALUE_REQUIRED, 'Skip routes containing this string', []),
         ]);
@@ -144,7 +144,7 @@ class CrawlCommand extends Command
                 if (!$link->testable()) {
                     $io->warning("Rejecting " . $link->getPath() . ' ' . $link->getRoute());
                 }
-                if ($loop > 50) {
+                if ( ($limit = $input->getOption('limit')) && ($loop > $limit)) {
                     break;
                 }
             }
