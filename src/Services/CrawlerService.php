@@ -2,7 +2,6 @@
 
 namespace Survos\CrawlerBundle\Services;
 
-use App\Entity\User;
 use Doctrine\Persistence\ManagerRegistry;
 use Goutte\Client;
 use Psr\Log\LoggerInterface;
