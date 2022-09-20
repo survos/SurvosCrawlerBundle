@@ -22,8 +22,7 @@ class CrawlerClient extends KernelBrowser
      */
     protected function doRequest(object $request): Response
     {
-        assert(false);
-        dd($request);
+//        assert(false);
         // TODO: Implement doRequest() method.
         $response = parent::doRequest($request);
         return $response;

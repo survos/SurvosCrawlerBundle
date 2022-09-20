@@ -2,8 +2,7 @@
 
 namespace Survos\CrawlerBundle\Command;
 
-use App\Entity\User;
-use App\Tests\Factory\UserFactory;
+//use App\Entity\User;
 use Doctrine\Bundle\DoctrineBundle\Registry;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\Persistence\ManagerRegistry;
@@ -19,7 +18,11 @@ use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Console\Style\SymfonyStyle;
 use Symfony\Component\DependencyInjection\ParameterBag\ParameterBagInterface;
+use Symfony\Component\DomCrawler\Crawler;
+use Symfony\Component\HttpFoundation\Cookie;
+use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\Routing\RouterInterface;
+use Symfony\Component\Security\Core\Authentication\Token\UsernamePasswordToken;
 use Symfony\Component\Stopwatch\Stopwatch;
 use Symfony\Contracts\HttpClient\HttpClientInterface;
 
@@ -337,7 +340,7 @@ At most, <comment>%s</comment> pages will be crawled.', $this->domain, $this->st
 //        $kernel = new \Symfony\Bundle\FrameworkBundle\Kernel\('test', true);
 //        $kernel->boot();
 
-        return $kernel;
+//        return $kernel;
     }
 
     /**
@@ -356,9 +359,9 @@ At most, <comment>%s</comment> pages will be crawled.', $this->domain, $this->st
             print $node->text() . "\n";
         });
 
-        /** @var Member $user */
-
         // @todo: this assumes a local user, it should be a proper login to the endpoint
+        // We need the user class, not sure this makes sense here.
+        $entityManager = $this->registry->getManagerForClass($this->userClass);
         if (!$user = $this->entityManager->getRepository(Member::class)->findOneBy(['code' => $this->username])) {
             throw new \Exception("Unable to authenticate member " . $this->username);
         }

@@ -32,7 +32,7 @@ class CrawlerService
         private RouterInterface $router,
 //        private Client $gouteClient,
 //        private HttpClientInterface $httpClient,
-//        private LoggerInterface     $logger,
+        private LoggerInterface     $logger,
         private array               $linkList = [],
         private ?string             $username = null,
     )
@@ -160,7 +160,7 @@ class CrawlerService
             return;
 
             // @todo: user provider instead of doctrine
-            $user = $this->managerRegistry->getRepository(User::class)->findOneBy(['email' => $username]);
+            $user = $this->managerRegistry->getRepository($this->userClass)->findOneBy(['email' => $username]);
             assert($user, "Invalid user $username, not in user database");
 
             $uri = 'http://jardin.wip/login_check';
@@ -239,8 +239,9 @@ class CrawlerService
             ->setStatusCode($status);
 
         if ($status <> 200) {
-
-            dd($response->getStatusCode(), $this->baseUrl . $link->getPath());
+            // @todo: what should we do here?
+            $this->logger->error("Error scraping $url: " . $status);
+//            dd($response->getStatusCode(), $this->baseUrl . $link->getPath());
             $html = false;
         } else {
             $html = $response->getContent();
@@ -287,7 +288,7 @@ class CrawlerService
 
     private function cleanup(string $href): ?string
     {
-        $cleanHref = str_replace(self::URL_BASE, '', $href);
+        $cleanHref = str_replace($this->baseUrl, '', $href);
         $cleanHref = u($cleanHref)->before('#')->toString();
         if (empty($cleanHref)) {
             return null;
