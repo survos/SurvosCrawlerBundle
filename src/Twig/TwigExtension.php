@@ -11,15 +11,15 @@ use Twig\TwigFunction;
 class TwigExtension extends AbstractExtension
 {
     public function __construct(
-    )
-    {
-
+    ) {
     }
 
     public function getFunctions(): array
     {
         return [
-            new TwigFunction('link', [$this, 'link'], ['is_safe' => ['html']]),
+            new TwigFunction('link', [$this, 'link'], [
+                'is_safe' => ['html'],
+            ]),
         ];
     }
 

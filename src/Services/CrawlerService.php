@@ -15,8 +15,7 @@ use function Symfony\Component\String\u;
 
 class CrawlerService
 {
-
-    private ?Client $goutteClient=null;
+    private ?Client $goutteClient = null;
 
     public function __construct(
         private array $config,
@@ -27,18 +26,16 @@ class CrawlerService
         private string $plaintextPassword,
         private string $initialPath,
         /* @todo: User Provider */
-        private ManagerRegistry     $managerRegistry,
-//        private CrawlerClient       $client,
+        private ManagerRegistry $managerRegistry,
+        //        private CrawlerClient       $client,
         private RouterInterface $router,
-//        private Client $gouteClient,
-//        private HttpClientInterface $httpClient,
-        private LoggerInterface     $logger,
-        private array               $linkList = [],
-        private ?string             $username = null,
-    )
-    {
-//        $this->baseUrl = 'https://127.0.0.1:8001';
-
+        //        private Client $gouteClient,
+        //        private HttpClientInterface $httpClient,
+        private LoggerInterface $logger,
+        private array $linkList = [],
+        private ?string $username = null,
+    ) {
+        //        $this->baseUrl = 'https://127.0.0.1:8001';
     }
 
     public function getUserClass(): string
@@ -46,9 +43,7 @@ class CrawlerService
         return $this->$this->userClass;
     }
 
-    /**
-     * @return string
-     */
+
     public function getInitialPath(): string
     {
         return $this->initialPath;
@@ -66,12 +61,12 @@ class CrawlerService
 
     public function addLink(?string $username, string $path, ?string $foundOn = null): Link
     {
-//        $key = $this->linkListKey($username, $path);
+        //        $key = $this->linkListKey($username, $path);
 
-        if (!array_key_exists($username, $this->linkList)) {
-            $this->linkList[$username]=[];
+        if (! array_key_exists($username, $this->linkList)) {
+            $this->linkList[$username] = [];
         }
-        if (!array_key_exists($path, $this->linkList[$username])) {
+        if (! array_key_exists($path, $this->linkList[$username])) {
             $this->linkList[$username][$path] = new Link(username: $username, path: $path, foundOn: $foundOn);
         }
         $link = $this->linkList[$username][$path];
@@ -95,13 +90,12 @@ class CrawlerService
 
     public function getPendingLinks(?string $username): array
     {
-        return array_filter($this->getLinkList($username), fn(Link $link) => $link->isPending());
+        return array_filter($this->getLinkList($username), fn (Link $link) => $link->isPending());
     }
 
     public function getUnvisitedLink(?string $username): ?Link
     {
         return current($this->getPendingLinks($username)) ?: null;
-
     }
 
     public function getUsername(): ?string
@@ -110,11 +104,11 @@ class CrawlerService
     }
 
     // set the goutte client to an authenticated user
-    public function authenticateClient(?string $username = null, string $plainPassword=null): void
+    public function authenticateClient(?string $username = null, string $plainPassword = null): void
     {
         // might be worth checking out: https://github.com/liip/LiipTestFixturesBundle/pull/62#issuecomment-622191412
         static $clients = [];
-        if (!array_key_exists($username, $clients)) {
+        if (! array_key_exists($username, $clients)) {
             $gouteClient = new Client();
             $gouteClient
                 ->setMaxRedirects(0);
@@ -124,23 +118,23 @@ class CrawlerService
 
             if ($username) {
                 $crawler = $gouteClient->request('GET', $url = $baseUrl . trim($this->loginPath, '/'), [
-                    'proxy' => '127.0.0.1:7080'
+                    'proxy' => '127.0.0.1:7080',
                 ]);
 
-//            dd($crawler, $url);
+                //            dd($crawler, $url);
                 $response = $gouteClient->getResponse();
                 assert($response->getStatusCode() === 200, "Invalid route: " . $url);
-//            dd(substr($response->getContent(),0, 1024), $url, $baseUrl);
+                //            dd(substr($response->getContent(),0, 1024), $url, $baseUrl);
 
-// select the form and fill in some values
-//                $form = $crawler->filter('login_form')->form();
-                    $form = $crawler->selectButton('login_button')->form();
-                    assert($form, "login_form is not found");
+                // select the form and fill in some values
+                //                $form = $crawler->filter('login_form')->form();
+                $form = $crawler->selectButton('login_button')->form();
+                assert($form, "login_form is not found");
                 try {
-//                    $loginCrawler = new Crawler($response->getContent(), $url);
-//                    $form = $loginCrawler->form(); // first form on the page?
-//                    $form = $loginCrawler->selectButton($this->submitButtonSelector);//->form();
-//                    dd($form);
+                    //                    $loginCrawler = new Crawler($response->getContent(), $url);
+                    //                    $form = $loginCrawler->form(); // first form on the page?
+                    //                    $form = $loginCrawler->selectButton($this->submitButtonSelector);//->form();
+                    //                    dd($form);
                 } catch (\Exception $exception) {
                     echo $response->getContent();
                     throw new \Exception($this->submitButtonSelector . ' does not find a form on ' . $this->loginPath);
@@ -150,22 +144,23 @@ class CrawlerService
                 $form[$this->config['username_form_variable']] = $username;
                 $form[$this->config['password_form_variable']] = $plainPassword;
 
-// submit that form
+                // submit that form
                 $crawler = $gouteClient->submit($form);
                 $response = $gouteClient->getResponse();
                 assert($response->getStatusCode() == 200, substr($response->getContent(), 0, 512) . "\n\n" . $url);
 
-
-//            dd($response);
-//                $crawler = $gouteClient->request('GET', $uri = "$baseUrl/project");
-//                $response = $gouteClient->getResponse();
-//                assert($response->getStatusCode() == 200, "Invalid link " . $uri);
+                //            dd($response);
+                //                $crawler = $gouteClient->request('GET', $uri = "$baseUrl/project");
+                //                $response = $gouteClient->getResponse();
+                //                assert($response->getStatusCode() == 200, "Invalid link " . $uri);
             }
             $this->goutteClient = $clients[$username];
             return;
 
             // @todo: user provider instead of doctrine
-            $user = $this->managerRegistry->getRepository($this->userClass)->findOneBy(['email' => $username]);
+            $user = $this->managerRegistry->getRepository($this->userClass)->findOneBy([
+                'email' => $username,
+            ]);
             assert($user, "Invalid user $username, not in user database");
 
             $uri = 'http://jardin.wip/login_check';
@@ -177,30 +172,27 @@ class CrawlerService
                 ],
                 'json' => [
                     'username' => 'tt@survos.com',
-                    'password' => 'ttx'
+                    'password' => 'ttx',
                 ],
             ]);
             $statusCode = $response->getStatusCode();
 
-                $content = $response->getContent();
-                dd($content, $response, $statusCode);
-            if($statusCode  == 200) {
+            $content = $response->getContent();
+            dd($content, $response, $statusCode);
+            if ($statusCode == 200) {
             }
 
-
-//            $this->client->loginUser($user);
+            //            $this->client->loginUser($user);
             // @todo: configure
             $formData = new FormDataPart($formFields);
             $client->request('POST', 'https://...', [
                 'headers' => $formData->getPreparedHeaders()->toArray(),
                 'body' => $formData->bodyToIterable(),
             ]);
-
         }
-//        $this->router = $container->get('router');
-//        $this->cache = $container->get('cache.app');
+        //        $this->router = $container->get('router');
+        //        $this->cache = $container->get('cache.app');
     }
-
 
     private function getKey($path): string
     {
@@ -209,7 +201,7 @@ class CrawlerService
 
     public function scrape(Link $link, int $depth = 0): void
     {
-//        $this->logger->info("Scraping " . $link->getPath());
+        //        $this->logger->info("Scraping " . $link->getPath());
         $link->setSeen(true);
 
         if ($depth && ($link->getDepth() > $depth)) {
@@ -228,16 +220,16 @@ class CrawlerService
         }
 
         // ugh, sloppy
-        $url = trim($this->baseUrl, '/') . '/'  . trim($link->getPath(), '/');
+        $url = trim($this->baseUrl, '/') . '/' . trim($link->getPath(), '/');
         assert(is_string($url));
         assert(parse_url($url), "Invalid url: " . $url);
-//        $response = $this->cache->get(md5($url), function(CacheItem $item) use ($url, $info, $path) {
+        //        $response = $this->cache->get(md5($url), function(CacheItem $item) use ($url, $info, $path) {
 
         $crawler = $this->goutteClient->request('GET', $url);
 
         $response = $this->goutteClient->getResponse();
 
-//        dd($response->getStatusCode(), $request, $this->goutteClient);
+        //        dd($response->getStatusCode(), $request, $this->goutteClient);
         $status = $response->getStatusCode();
         $link
 //            ->setDuration($response->getInfo('total_time'))
@@ -246,36 +238,36 @@ class CrawlerService
         if ($status <> 200) {
             // @todo: what should we do here?
             $this->logger->error("Error scraping $url: " . $status);
-//            dd($response->getStatusCode(), $this->baseUrl . $link->getPath());
+            //            dd($response->getStatusCode(), $this->baseUrl . $link->getPath());
             $html = false;
         } else {
             $html = $response->getContent();
         }
-        assert($status === 200, $link->username.  '@' . $this->baseUrl . trim($link->getPath(), '/') . ' ' . $link->getRoute() . ' caused a ' . $status . ' found on ' . $link->foundOn);
+        assert($status === 200, $link->username . '@' . $this->baseUrl . trim($link->getPath(), '/') . ' ' . $link->getRoute() . ' caused a ' . $status . ' found on ' . $link->foundOn);
 
-//        $responseInfo = $response->getInfo();
-//        unset($responseInfo['pause_handler']);
-//            dd($responseInfo);
+        //        $responseInfo = $response->getInfo();
+        //        unset($responseInfo['pause_handler']);
+        //            dd($responseInfo);
 
-//        assert(array_key_exists('info', $info));
-//        $crawler = $client->request('GET',  $base . $path);
-        if (!$html) {
+        //        assert(array_key_exists('info', $info));
+        //        $crawler = $client->request('GET',  $base . $path);
+        if (! $html) {
             return;
         }
 
         $crawler = new Crawler($html, $url);
-//        $crawler = new \Symfony\Component\DomCrawler\Crawler()
+        //        $crawler = new \Symfony\Component\DomCrawler\Crawler()
         // Get the latest post in this category and display the titles
         $crawler->filter(' a')->each(
             function ($node) use ($link, $depth) {
-                $href = (string)$node->attr('href');
+                $href = (string) $node->attr('href');
                 $cleanHref = str_replace($this->baseUrl, '', $href);
                 $cleanHref = u($cleanHref)->before('#')->toString();
                 if (empty($cleanHref)) {
                     return null;
                 }
                 if (preg_match('{^/(_(profiler|wdt)|css|images|js)/}', $cleanHref)) {
-//                dd($href);
+                    //                dd($href);
                     return null;
                 }
                 $parts = parse_url($cleanHref);
@@ -286,10 +278,9 @@ class CrawlerService
                 }
                 $pageLink = $this->addLink($link->username, $cleanHref, foundOn: $link->getPath());
                 $pageLink->setDepth($depth + 1);
-            });
-
+            }
+        );
     }
-
 
     private function cleanup(string $href): ?string
     {
@@ -299,7 +290,7 @@ class CrawlerService
             return null;
         }
         if (preg_match('{^/(_(profiler|wdt)|css|images|js)/}', $cleanHref)) {
-//                dd($href);
+            //                dd($href);
             return null;
         }
         $parts = parse_url($cleanHref);
@@ -310,7 +301,6 @@ class CrawlerService
         }
 
         return $cleanHref;
-
     }
 
     private function setRoute(Link $link)
@@ -320,11 +310,10 @@ class CrawlerService
             // hack
             $path = parse_url($path, PHP_URL_PATH);
 
-
             if ($route = $this->router->match($path)) {
                 $link->setRoute($route['_route']);
                 $controller = $route['_controller'];
-//                $reflection = new \ReflectionMethod($controller);
+                //                $reflection = new \ReflectionMethod($controller);
                 foreach (['_route', '_controller'] as $x) {
                     unset($route[$x]);
                 }
@@ -340,5 +329,4 @@ class CrawlerService
         }
         assert($path, "missing path");
     }
-
 }

@@ -14,11 +14,11 @@ use Symfony\Component\HttpKernel\Bundle\Bundle;
 
 class SurvosCrawlerBundle extends AbstractBundle
 {
-
-    /** @param array<mixed> $config */
+    /**
+     * @param array<mixed> $config
+     */
     public function loadExtension(array $config, ContainerConfigurator $container, ContainerBuilder $builder): void
     {
-
         $builder->autowire(CrawlCommand::class)
 //            ->setArgument('$registry', new Reference('doctrine'))
             ->setArgument('$logger', new Reference('logger'))
@@ -36,14 +36,12 @@ class SurvosCrawlerBundle extends AbstractBundle
             ->setArgument('$plaintextPassword', $config['plaintext_password'])
             ->setArgument('$initialPath', $config['initial_path'])
             ->setArgument('$baseUrl', $config['base_url']);
-            ;
+        ;
         $container->services()->alias(CrawlerService::class, $crawler_service_id);
 
-
-
-//        $definition->setArgument('$widthFactor', $config['widthFactor']);
-//        $definition->setArgument('$height', $config['height']);
-//        $definition->setArgument('$foregroundColor', $config['foregroundColor']);
+        //        $definition->setArgument('$widthFactor', $config['widthFactor']);
+        //        $definition->setArgument('$height', $config['height']);
+        //        $definition->setArgument('$foregroundColor', $config['foregroundColor']);
     }
 
     public function configure(DefinitionConfigurator $definition): void
@@ -66,5 +64,4 @@ class SurvosCrawlerBundle extends AbstractBundle
             ->end();
         ;
     }
-
 }
