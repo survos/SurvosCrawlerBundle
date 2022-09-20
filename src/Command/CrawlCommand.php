@@ -3,6 +3,7 @@
 namespace Survos\CrawlerBundle\Command;
 
 //use App\Entity\User;
+use App\Kernel;
 use Doctrine\Bundle\DoctrineBundle\Registry;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\Persistence\ManagerRegistry;
@@ -325,22 +326,13 @@ At most, <comment>%s</comment> pages will be crawled.', $this->domain, $this->st
         }
     }
 
-    /**
-     * createKernel
-     *
-     * @return  \AppKernel
-     * @author  Joe Sexton <joe@webtipblog.com
-     */
-    protected function createKernel()
+    protected function createKernel(): Kernel
     {
 
-//
 //        $rootDir = $this->bag->get('kernel.project_dir');
 //        require_once($rootDir . '/Kernel.php');
-//        $kernel = new \Symfony\Bundle\FrameworkBundle\Kernel\('test', true);
-//        $kernel->boot();
-
-//        return $kernel;
+        $kernel = new Kernel('test', true);
+        return $kernel;
     }
 
     /**
@@ -360,13 +352,14 @@ At most, <comment>%s</comment> pages will be crawled.', $this->domain, $this->st
         });
 
         // @todo: this assumes a local user, it should be a proper login to the endpoint
-        // We need the user class, not sure this makes sense here.
-        $entityManager = $this->registry->getManagerForClass($this->userClass);
-        if (!$user = $this->entityManager->getRepository(Member::class)->findOneBy(['code' => $this->username])) {
+        $userClass = $this->crawlerService->getUserClass();
+        $entityManager = $this->registry->getManagerForClass($userClass);
+        // code? Username? S.b. configurable.
+        if (!$user = $entityManager->getRepository($userClass)->findOneBy(['code' => $this->username])) {
             throw new \Exception("Unable to authenticate member " . $this->username);
         }
         // $token = new UsernamePasswordToken($login, $password, $firewall);
-        $token = new UsernamePasswordToken($user, null, $this->securityFirewall, $user->getRoles());
+        $token = new UsernamePasswordToken($user, $this->securityFirewall, $user->getRoles());
 
         /* we do this, not sure if it'll help
         */

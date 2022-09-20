@@ -41,6 +41,11 @@ class CrawlerService
 
     }
 
+    public function getUserClass(): string
+    {
+        return $this->$this->userClass;
+    }
+
     /**
      * @return string
      */
