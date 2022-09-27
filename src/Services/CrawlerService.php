@@ -128,7 +128,16 @@ class CrawlerService
 
                 // select the form and fill in some values
                 //                $form = $crawler->filter('login_form')->form();
-                $form = $crawler->selectButton('login_button')->form();
+                $loginButton = $crawler->selectButton($this->submitButtonSelector);
+                if ($loginButton->getNode(0)) {
+                    $form = $loginButton->form();
+                } else {
+                    $form = $crawler->filter('form')->form();
+                }
+
+//                assert($loginButton->getNode(0), $this->submitButtonSelector . " button not found");
+//                dump($loginButton);
+//                $form = $crawler->form()
                 assert($form, "login_form is not found");
                 try {
                     //                    $loginCrawler = new Crawler($response->getContent(), $url);
@@ -237,7 +246,8 @@ class CrawlerService
 
         if ($status <> 200) {
             // @todo: what should we do here?
-            $this->logger->error("Error scraping $url: " . $status);
+            dump($response->getContent());
+            $this->logger->error("Error $status scraping $url: " . $status);
             //            dd($response->getStatusCode(), $this->baseUrl . $link->getPath());
             $html = false;
         } else {
