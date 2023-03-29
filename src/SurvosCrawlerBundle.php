@@ -22,7 +22,7 @@ class SurvosCrawlerBundle extends AbstractBundle
         $builder->autowire(CrawlCommand::class)
 //            ->setArgument('$registry', new Reference('doctrine'))
             ->setArgument('$logger', new Reference('logger'))
-            ->addTag('console.command')
+            ->addTag('console.command');
         ;
 
         $crawler_service_id = 'survos.crawler_service';
@@ -35,7 +35,8 @@ class SurvosCrawlerBundle extends AbstractBundle
             ->setArgument('$submitButtonSelector', $config['submit_button'])
             ->setArgument('$plaintextPassword', $config['plaintext_password'])
             ->setArgument('$initialPath', $config['initial_path'])
-            ->setArgument('$baseUrl', $config['base_url']);
+            ->setArgument('$baseUrl', $config['base_url'])
+            ->setArgument('$users', $config['users'])
         ;
         $container->services()->alias(CrawlerService::class, $crawler_service_id);
 
@@ -50,6 +51,7 @@ class SurvosCrawlerBundle extends AbstractBundle
         $definition->rootNode()
             ->children()
 //            ->arrayNode('routes_to_skip')->defaultValue(['app_logout'])->end()
+            ->arrayNode('users')->prototype('variable')->end()->end()
             ->scalarNode('max_per_route')->defaultValue(3)->end()
             ->scalarNode('base_url')->defaultValue('https://127.0.0.1:8000')->end()
             ->scalarNode('initial_path')->defaultValue('/')->end()

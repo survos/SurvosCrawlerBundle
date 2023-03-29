@@ -3,6 +3,7 @@
 namespace Survos\CrawlerBundle\Services;
 
 use Doctrine\Persistence\ManagerRegistry;
+use Exception;
 use Goutte\Client;
 use Psr\Log\LoggerInterface;
 use Survos\CrawlerBundle\Model\Link;
@@ -34,6 +35,7 @@ class CrawlerService
         private LoggerInterface $logger,
         private array $linkList = [],
         private ?string $username = null,
+        private array $users = []
     ) {
         //        $this->baseUrl = 'https://127.0.0.1:8001';
     }
@@ -51,7 +53,18 @@ class CrawlerService
 
     public function getUsers()
     {
-        return $this->managerRegistry->getRepository($this->userClass)->findBy([]);
+        return $this->users;
+    }
+
+    public function getUser($user)
+    {
+        $userData =  $this->managerRegistry->getRepository($this->userClass)->findOneBy(['email' => $user]);
+        
+        if($userData) {
+           return $userData; 
+        }
+
+        throw new \Exception('User $user do not exists!');
     }
 
     private function linkListKey(?string $username, string $path): string
