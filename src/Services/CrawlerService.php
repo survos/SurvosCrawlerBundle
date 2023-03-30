@@ -4,19 +4,23 @@ namespace Survos\CrawlerBundle\Services;
 
 use Doctrine\Persistence\ManagerRegistry;
 use Exception;
-use Goutte\Client;
+use Symfony\Component\HttpKernel\KernelInterface;
 use Psr\Log\LoggerInterface;
 use Survos\CrawlerBundle\Model\Link;
 use Symfony\Bundle\FrameworkBundle\KernelBrowser;
 use Symfony\Component\DomCrawler\Crawler;
 use Symfony\Component\Routing\Exception\ResourceNotFoundException;
 use Symfony\Component\Routing\RouterInterface;
+use Symfony\Component\Security\Core\User\UserInterface;
 use Symfony\Contracts\HttpClient\HttpClientInterface;
+use Symfony\Component\DependencyInjection\Reference;
+use Symfony\Component\DependencyInjection\ServiceLocator;
 use function Symfony\Component\String\u;
 
+use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInterface;
 class CrawlerService
 {
-    private ?Client $goutteClient = null;
+    private ?CrawlerClient $crawlerClient = null;
 
     public function __construct(
         private array $config,
@@ -33,9 +37,11 @@ class CrawlerService
         //        private Client $gouteClient,
         //        private HttpClientInterface $httpClient,
         private LoggerInterface $logger,
+        private KernelInterface $kernel,
+        private TokenStorageInterface $tokenStorage,
         private array $linkList = [],
         private ?string $username = null,
-        private array $users = []
+        private array $users = [],
     ) {
         //        $this->baseUrl = 'https://127.0.0.1:8001';
     }
@@ -51,20 +57,21 @@ class CrawlerService
         return $this->initialPath;
     }
 
-    public function getUsers()
+    public function getUsernames(): array
     {
         return $this->users;
     }
 
-    public function getUser($user)
+    public function getUser($username): ?UserInterface
     {
-        $userData =  $this->managerRegistry->getRepository($this->userClass)->findOneBy(['email' => $user]);
-        
-        if($userData) {
-           return $userData; 
-        }
+        $user = $this->managerRegistry->getRepository($this->userClass)->findOneBy([
+            'email' => $username,
+        ]);
+        return $user;
 
-        throw new \Exception('User $user do not exists!');
+        assert($user, "Invalid user $username, not in user database");
+
+        return $user;
     }
 
     private function linkListKey(?string $username, string $path): string
@@ -117,100 +124,17 @@ class CrawlerService
     }
 
     // set the goutte client to an authenticated user
-    public function authenticateClient(?string $username = null, string $plainPassword = null): void
+    public function authenticateClient($user): void
     {
         // might be worth checking out: https://github.com/liip/LiipTestFixturesBundle/pull/62#issuecomment-622191412
         static $clients = [];
+        $username = $user->getUserIdentifier();
         if (! array_key_exists($username, $clients)) {
-            $gouteClient = new Client();
-            $gouteClient
-                ->setMaxRedirects(0);
-            $this->username = $username;
-            $baseUrl = $this->baseUrl;
-            $clients[$username] = $gouteClient;
-
-            if ($username) {
-                $crawler = $gouteClient->request('GET', $url = $baseUrl . trim($this->loginPath, '/'), [
-                    'proxy' => '127.0.0.1:7080',
-                ]);
-
-                //            dd($crawler, $url);
-                $response = $gouteClient->getResponse();
-                assert($response->getStatusCode() === 200, "Invalid route: " . $url);
-                //            dd(substr($response->getContent(),0, 1024), $url, $baseUrl);
-
-                // select the form and fill in some values
-                //                $form = $crawler->filter('login_form')->form();
-                $loginButton = $crawler->selectButton($this->submitButtonSelector);
-                if ($loginButton->getNode(0)) {
-                    $form = $loginButton->form();
-                } else {
-                    $form = $crawler->filter('form')->form();
-                }
-
-//                assert($loginButton->getNode(0), $this->submitButtonSelector . " button not found");
-//                dump($loginButton);
-//                $form = $crawler->form()
-                assert($form, "login_form is not found");
-                try {
-                    //                    $loginCrawler = new Crawler($response->getContent(), $url);
-                    //                    $form = $loginCrawler->form(); // first form on the page?
-                    //                    $form = $loginCrawler->selectButton($this->submitButtonSelector);//->form();
-                    //                    dd($form);
-                } catch (\Exception $exception) {
-                    echo $response->getContent();
-                    throw new \Exception($this->submitButtonSelector . ' does not find a form on ' . $this->loginPath);
-                }
-//                assert($form, $this->submitButtonSelector . ' does not find a form on ' . $this->loginPath);
-//                dd($this->config, $form->getValues());
-                $form[$this->config['username_form_variable']] = $username;
-                $form[$this->config['password_form_variable']] = $plainPassword;
-
-                // submit that form
-                $crawler = $gouteClient->submit($form);
-                $response = $gouteClient->getResponse();
-                assert($response->getStatusCode() == 200, substr($response->getContent(), 0, 512) . "\n\n" . $url);
-
-                //            dd($response);
-                //                $crawler = $gouteClient->request('GET', $uri = "$baseUrl/project");
-                //                $response = $gouteClient->getResponse();
-                //                assert($response->getStatusCode() == 200, "Invalid link " . $uri);
-            }
-            $this->goutteClient = $clients[$username];
+            $createClient = $this->createClient();
+            $createClient->loginUser($user);
+            $clients[$username] = $createClient;
+            $this->crawlerClient = $clients[$username];
             return;
-
-            // @todo: user provider instead of doctrine
-            $user = $this->managerRegistry->getRepository($this->userClass)->findOneBy([
-                'email' => $username,
-            ]);
-            assert($user, "Invalid user $username, not in user database");
-
-            $uri = 'http://jardin.wip/login_check';
-            $uri = '/login';
-
-            $response = $this->httpClient->request('POST', $uri, [
-                'headers' => [
-                    'Content-Type' => 'application/json',
-                ],
-                'json' => [
-                    'username' => 'tt@survos.com',
-                    'password' => 'ttx',
-                ],
-            ]);
-            $statusCode = $response->getStatusCode();
-
-            $content = $response->getContent();
-            dd($content, $response, $statusCode);
-            if ($statusCode == 200) {
-            }
-
-            //            $this->client->loginUser($user);
-            // @todo: configure
-            $formData = new FormDataPart($formFields);
-            $client->request('POST', 'https://...', [
-                'headers' => $formData->getPreparedHeaders()->toArray(),
-                'body' => $formData->bodyToIterable(),
-            ]);
         }
         //        $this->router = $container->get('router');
         //        $this->cache = $container->get('cache.app');
@@ -247,9 +171,9 @@ class CrawlerService
         assert(parse_url($url), "Invalid url: " . $url);
         //        $response = $this->cache->get(md5($url), function(CacheItem $item) use ($url, $info, $path) {
 
-        $crawler = $this->goutteClient->request('GET', $url);
+        $crawler = $this->crawlerClient->request('GET', $url);
 
-        $response = $this->goutteClient->getResponse();
+        $response = $this->crawlerClient->getResponse();
 
         //        dd($response->getStatusCode(), $request, $this->goutteClient);
         $status = $response->getStatusCode();
@@ -259,14 +183,15 @@ class CrawlerService
 
         if ($status <> 200) {
             // @todo: what should we do here?
-            dump($response->getContent());
-            $this->logger->error("Error $status scraping $url: " . $status);
+//            dump($response->getContent());
+            $this->logger->error("Warning:  $url: " . $status);
             //            dd($response->getStatusCode(), $this->baseUrl . $link->getPath());
             $html = false;
         } else {
             $html = $response->getContent();
         }
-        assert($status === 200, $link->username . '@' . $this->baseUrl . trim($link->getPath(), '/') . ' ' . $link->getRoute() . ' caused a ' . $status . ' found on ' . $link->foundOn);
+        // hmm, how should 301's be tracked?
+        assert(in_array($status, [200, 302, 301]), $link->username . '@' . $this->baseUrl . trim($link->getPath(), '/') . ' ' . $link->getRoute() . ' caused a ' . $status . ' found on ' . $link->foundOn);
 
         //        $responseInfo = $response->getInfo();
         //        unset($responseInfo['pause_handler']);
@@ -351,5 +276,10 @@ class CrawlerService
             return;
         }
         assert($path, "missing path");
+    }
+
+    private function createClient() {
+        $crawlerClient = new CrawlerClient($this->kernel, $this->tokenStorage);
+        return $crawlerClient;
     }
 }

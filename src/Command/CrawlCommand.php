@@ -122,16 +122,17 @@ class CrawlCommand extends Command
         $crawlerService = $this->crawlerService;
 
         //
-        $users = $this->crawlerService->getUsers();
+        $usernames = $this->crawlerService->getUsernames();
 
         $crawlerService->resetLinkList();
 
-        foreach ([...$users, null] as $user) {
-            //        foreach ($users as $user) {
-            $user = $this->crawlerService->getUser($user);
-            $username = $user->getUserIdentifier();
+        foreach ([...$usernames, null] as $username) {
+            //        foreach ($usernames as $user) {
+            if ($user = $this->crawlerService->getUser($username)) {
+                $username = $user->getUserIdentifier(); //assert that they're the same?
+                $crawlerService->authenticateClient($user);
+            }
             $io->info(sprintf("Crawling %s as %s", $crawlerService->getInitialPath(), $username ?: 'Visitor'));
-            $crawlerService->authenticateClient($username);
 
             $link = $crawlerService->addLink($username, $crawlerService->getInitialPath());
             $link->username = $username;
@@ -167,7 +168,7 @@ class CrawlCommand extends Command
         //        }
 
         file_put_contents($outputFilename, json_encode($linksToCrawl, JSON_UNESCAPED_LINE_TERMINATORS + JSON_PRETTY_PRINT + JSON_UNESCAPED_SLASHES));
-        $io->success(sprintf("File $outputFilename written with %d users", count($linksToCrawl)));
+        $io->success(sprintf("File $outputFilename written with %d usernames", count($linksToCrawl)));
 
         return self::SUCCESS;
 
@@ -362,12 +363,12 @@ At most, <comment>%s</comment> pages will be crawled.', $this->domain, $this->st
         */
         $client->getContainer()->get('security.token_storage')->setToken($token);
 
-        
+
         $session = $client->getContainer()->get('session');
         $session->set('_security_' . $this->securityFirewall, serialize($token));
         $session->save();
 
-        
+
         $cookie = new Cookie($session->getName(), $session->getId());
         $client->getCookieJar()->set($cookie);
     }

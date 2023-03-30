@@ -11,6 +11,7 @@ use Symfony\Component\DependencyInjection\Loader\Configurator\ContainerConfigura
 use Symfony\Component\DependencyInjection\Reference;
 use Symfony\Component\HttpKernel\Bundle\AbstractBundle;
 use Symfony\Component\HttpKernel\Bundle\Bundle;
+use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInterface;
 
 class SurvosCrawlerBundle extends AbstractBundle
 {
@@ -37,6 +38,10 @@ class SurvosCrawlerBundle extends AbstractBundle
             ->setArgument('$initialPath', $config['initial_path'])
             ->setArgument('$baseUrl', $config['base_url'])
             ->setArgument('$users', $config['users'])
+            ->setArgument('$kernel', new Reference('kernel'))
+            ->setArgument('$linkList', [])
+            ->setArgument('$username', "")
+            ->setArgument('$tokenStorage', new Reference('security.untracked_token_storage'))
         ;
         $container->services()->alias(CrawlerService::class, $crawler_service_id);
 
