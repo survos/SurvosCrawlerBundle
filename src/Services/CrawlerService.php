@@ -171,15 +171,21 @@ class CrawlerService
         assert(parse_url($url), "Invalid url: " . $url);
         //        $response = $this->cache->get(md5($url), function(CacheItem $item) use ($url, $info, $path) {
 
-        $crawler = $this->crawlerClient->request('GET', $url);
-
-        $response = $this->crawlerClient->getResponse();
+        $crawlerClient = $this->crawlerClient;
+        assert($crawlerClient, "no crawlerClient");
+        $crawlerClient->followRedirects();
+        $crawlerClient->request('GET', $url);
+        $response = $crawlerClient->getResponse();
 
         //        dd($response->getStatusCode(), $request, $this->goutteClient);
         $status = $response->getStatusCode();
         $link
 //            ->setDuration($response->getInfo('total_time'))
             ->setStatusCode($status);
+
+        if ($status == 302) {
+            die('we should be following redirects, option in the request method?...');
+        }
 
         if ($status <> 200) {
             // @todo: what should we do here?
