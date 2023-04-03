@@ -44,5 +44,8 @@
         "survos/wiki-bundle": "<1.2.57",
         "survos/import-bridge": "<1.2.57",
         "survos/grid-group-bundle": "<1.2.57"
+    },
+    "require-dev": {
+        "phpstan/phpstan": "^1.10"
     }
 }
