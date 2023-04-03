@@ -41,6 +41,7 @@ class SurvosCrawlerBundle extends AbstractBundle
             ->setArgument('$kernel', new Reference('kernel'))
             ->setArgument('$linkList', [])
             ->setArgument('$username', "")
+            ->setArgument('$maxDepth', $config['max_depth'])
             ->setArgument('$tokenStorage', new Reference('security.untracked_token_storage'))
         ;
         $container->services()->alias(CrawlerService::class, $crawler_service_id);
@@ -67,6 +68,7 @@ class SurvosCrawlerBundle extends AbstractBundle
             ->scalarNode('plaintext_password')->defaultValue('password')->end()
             ->scalarNode('submit_button')->defaultValue('.btn')->end()
             ->scalarNode('user_class')->defaultValue('App\\Entity\\User')->end()
+            ->scalarNode('max_depth')->defaultValue(1)->end()
 
             ->end();
         ;

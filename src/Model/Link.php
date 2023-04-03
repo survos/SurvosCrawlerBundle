@@ -24,10 +24,21 @@ class Link
         private ?string $html = null,
         private ?float $duration = null,
         public ?int $statusCode = null,
-        public ?string $foundOn = null
+        public ?string $foundOn = null,
+        public ?int $memory = null
     ) {
     }
 
+    public function getMemory(): ?int
+    {
+        return $this->memory;
+    }
+
+    public function setMemory(): Link
+    {
+        $this->memory = round(memory_get_usage()/1048576,2);
+        return $this;
+    }
 
     public function getLinkStatus(): ?string
     {
