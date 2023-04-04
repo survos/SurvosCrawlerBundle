@@ -42,14 +42,20 @@ class CrawlerService
         private array $linkList = [],
         private ?string $username = null,
         private array $users = [],
-        private int $maxDepth = 1
+        private int $maxDepth = 1,
+        private array $routesToIgnore = []
     ) {
         //        $this->baseUrl = 'https://127.0.0.1:8001';
     }
 
+    public function getBaseUrl(): string
+    {
+        return $this->baseUrl;
+    }
+
     public function getUserClass(): string
     {
-        return $this->$this->userClass;
+        return $this->userClass;
     }
 
 
@@ -159,8 +165,8 @@ class CrawlerService
         }
 
         $this->setRoute($link);
-        $routesToIgnore = ['app_logout'];
-        if (in_array($link->getRoute(), $routesToIgnore)) {
+        
+        if ($this->isIgnored($link->getPath())) {
             $link->setLinkStatus($link::STATUS_IGNORED);
             return;
         }
@@ -295,5 +301,20 @@ class CrawlerService
     private function createClient() {
         $crawlerClient = new CrawlerClient($this->kernel, $this->tokenStorage);
         return $crawlerClient;
+    }
+
+    private function isIgnored($path)
+    {
+        foreach ($this->routesToIgnore as $keyword) {
+            if (trim($path, '/') == "") {
+                return false;
+            }
+ 
+            if (strpos(trim($keyword, '/'), trim($path, '/')) !== false) {
+                return true;
+            }
+        }
+
+        return false;
     }
 }

@@ -153,12 +153,13 @@ class CrawlCommand extends Command
                 }
             }
 
-            $linksToCrawl[$username] = array_filter($crawlerService->getLinkList($username), fn (Link $link) => $link->testable());
+            $key = $username."|".$crawlerService->getUserClass()."|".$crawlerService->getBaseUrl();
+            $linksToCrawl[$key] = array_filter($crawlerService->getLinkList($username), fn (Link $link) => $link->testable());
             //            $userLinks = array_merge($userLinks, array_values($linksToCrawl));
-            $table->addRow([$username, count($linksToCrawl[$username]), count($crawlerService->getLinkList($username))]);
+            $table->addRow([$username, count($linksToCrawl[$key]), count($crawlerService->getLinkList($username))]);
 
             //            $userLinks += array_values($linksToCrawl);
-            $io->success(sprintf("User $username has with %d links", count($linksToCrawl[$username])));
+            $io->success(sprintf("User $username has with %d links", count($linksToCrawl[$key])));
         }
         $table->render();
 
