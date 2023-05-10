@@ -71,6 +71,9 @@ class CrawlerService
 
     public function getUser($username): ?UserInterface
     {
+        if (empty($this->userClass) || !class_exists($this->userClass)) {
+            return null;
+        }
         $user = $this->managerRegistry->getRepository($this->userClass)->findOneBy([
             'email' => $username,
         ]);
@@ -165,7 +168,7 @@ class CrawlerService
         }
 
         $this->setRoute($link);
-        
+
         if ($this->isIgnored($link->getPath())) {
             $link->setLinkStatus($link::STATUS_IGNORED);
             return;
@@ -187,9 +190,9 @@ class CrawlerService
         $startTime = floor(microtime(true) * 1000);
         $crawlerClient->request('GET', $url);
         $endTime = floor(microtime(true) * 1000);
-        $link->setDuration($endTime - $startTime);  
+        $link->setDuration($endTime - $startTime);
         $response = $crawlerClient->getResponse();
-        
+
         //        dd($response->getStatusCode(), $request, $this->goutteClient);
         $status = $response->getStatusCode();
         //$link->setMemory();
@@ -309,7 +312,7 @@ class CrawlerService
             if (trim($path, '/') == "") {
                 return false;
             }
- 
+
             if (strpos(trim($keyword, '/'), trim($path, '/')) !== false) {
                 return true;
             }
