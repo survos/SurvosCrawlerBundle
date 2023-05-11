@@ -132,6 +132,7 @@ class CrawlCommand extends Command
                 $username = $user->getUserIdentifier(); //assert that they're the same?
                 $crawlerService->authenticateClient($user);
             }
+            $this->crawlerService->checkIfCrawlerClient();
             $io->info(sprintf("Crawling %s as %s", $crawlerService->getInitialPath(), $username ?: 'Visitor'));
 
             $link = $crawlerService->addLink($username, $crawlerService->getInitialPath());

@@ -25,7 +25,7 @@ class CrawlerService
     public function __construct(
         private array $config,
         private string $baseUrl,
-        private string $userClass,
+        private ?string $userClass,
         private string $loginPath,
         private string $submitButtonSelector,
         private string $plaintextPassword,
@@ -53,7 +53,7 @@ class CrawlerService
         return $this->baseUrl;
     }
 
-    public function getUserClass(): string
+    public function getUserClass(): ?string
     {
         return $this->userClass;
     }
@@ -152,6 +152,13 @@ class CrawlerService
         }
         //        $this->router = $container->get('router');
         //        $this->cache = $container->get('cache.app');
+    }
+
+    public function checkIfCrawlerClient()
+    {
+        if(!$this->crawlerClient) {
+            $this->crawlerClient = $this->createClient();
+        }
     }
 
     private function getKey($path): string
