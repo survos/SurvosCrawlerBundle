@@ -55,14 +55,14 @@ class VisitLinksTest extends WebTestCase
     /**
      * @dataProvider linksToVisit
      */
-    public function testAuth($username, $url, $expected): void
+    public function testAuth($username, $userClassName, $url, $expected): void
     {
         $this->assertTrue(true);
         return;
         static $users = [];
-        if ($username) {
+        if ($username && $username != "") {
             if (!array_key_exists($username, $users)) {
-                $users[$username] = $container->get('doctrine')->getRepository(User::class)->findOneBy(['email' => $username]);
+                $users[$username] = $container->get('doctrine')->getRepository($userClassName)->findOneBy(['email' => $username]);
             }
 
             $user = $users[$username];
@@ -79,15 +79,15 @@ class VisitLinksTest extends WebTestCase
     /**
      * @dataProvider linksToVisit
      */
-    public function testWithLogin(?string $username, string $url, int $expected): void
+    public function testWithLogin(?string $username, ?string $userClassName, string $url, int $expected): void
     {
         static $users = [];
         $client = static::createClient();
 
-        if ($username) {
+        if ($username && $username != "") {
             if (!array_key_exists($username, $users)) {
                 $container = static::getContainer();
-                $users[$username] = $container->get('doctrine')->getRepository(User::class)->findOneBy(['email' => $username]);
+                $users[$username] = $container->get('doctrine')->getRepository($userClassName)->findOneBy(['email' => $username]);
             }
 
             $user = $users[$username];
@@ -98,7 +98,7 @@ class VisitLinksTest extends WebTestCase
 //        $client = static::createClient();
         $client->request('GET', $url);
         $reponse = $client->getResponse();
-        dd(substr($reponse->getContent(),0,1024));
+        //dd(substr($reponse->getContent(),0,1024));
         $this->assertEquals($expected, $reponse->getStatusCode(), sprintf('The %s@%s expected %d', $username, $url, $expected));
 
 //        $this->assertResponseStatusCodeSame($expected, sprintf('The %s@%s expected %d', $username, $url, $expected));
@@ -119,13 +119,14 @@ class VisitLinksTest extends WebTestCase
         $crawldataFilename = $kernel->getProjectDir(). '/crawldata.json';
         assert(file_exists($crawldataFilename));
         $crawldata = json_decode(file_get_contents($crawldataFilename));
+
         foreach ($crawldata as $username => $linksToCrawl) {
+            $array = explode("|",$username);
             foreach ($linksToCrawl as $path=>$info) {
                 // yield?
-                $x[$username . '@' . $info->path] = [$username, $info->path, 200];
+                $x[$username . '@' . $info->path] = [$array[0],$array[1], $info->path, 200];
             }
         }
-
         return $x;
     }
 
