@@ -21,6 +21,11 @@
             "Survos\\CrawlerBundle\\": "src/"
         }
     },
+    "extra": {
+        "branch-alias": {
+            "dev-master": "2.0-dev"
+        }
+    },
     "conflict": {
         "survos/maker-bundle": "<1.2.57",
         "survos/html-prettify-bundle": "<1.2.57",
