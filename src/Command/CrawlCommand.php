@@ -101,7 +101,8 @@ class CrawlCommand extends Command
             new InputArgument('password', InputArgument::OPTIONAL, 'Password', 'o'),
             new InputOption('limit', null, InputOption::VALUE_REQUIRED, 'Limit the number of links to process, prevents infinite crawling', 0),
             new InputOption('security-firewall', null, InputOption::VALUE_REQUIRED, 'Firewall name', 'secured_area'),
-            new InputOption('ignore-route-keyword', null, InputOption::VALUE_IS_ARRAY | InputOption::VALUE_REQUIRED, 'Skip routes containing this string', []),
+            new InputOption('ignore-route-keyword', null, InputOption::VALUE_REQUIRED, 'regex to ignore routes'),
+//            new InputOption('ignore-route-keyword', null, InputOption::VALUE_IS_ARRAY | InputOption::VALUE_REQUIRED, 'Skip routes containing this string', []),
         ]);
     }
 
@@ -147,7 +148,7 @@ class CrawlCommand extends Command
                 //                $io->info("Considering " . $link->getPath());
                 $crawlerService->scrape($link);
                 if (! $link->testable()) {
-                    $io->warning("Rejecting " . $link->getPath() . ' ' . $link->getRoute());
+//                    $io->info("Rejecting " . $link->getPath() . ' ' . $link->getRoute());
                 }
                 if (($limit = $input->getOption('limit')) && ($loop > $limit)) {
                     break;
@@ -395,7 +396,7 @@ At most, <comment>%s</comment> pages will be crawled.', $this->domain, $this->st
         });
         // $seen = [];
 
-        // remove outboundlinks and links with spaces
+        // remove outbound links and links with spaces
         foreach ($links as $key => $link) {
             if (isset($this->domainLinks[$link]) || in_array($link, $seen)) {
                 unset($links[$key]);

@@ -214,14 +214,25 @@ class CrawlerService
         if ($status <> 200) {
             // @todo: what should we do here?
 //            dump($response->getContent());
-            $this->logger->error("Warning:  $url: " . $status);
+            $this->logger->error("$url " . $status);
             //            dd($response->getStatusCode(), $this->baseUrl . $link->getPath());
-            $html = false;
+            $html = ''; // false;
         } else {
             $html = $response->getContent();
         }
         // hmm, how should 301's be tracked?
-        assert(in_array($status, [200, 302, 301]), $link->username . '@' . $this->baseUrl . trim($link->getPath(), '/') . ' ' . $link->getRoute() . ' caused a ' . $status . ' found on ' . $link->foundOn);
+        if (!in_array($status, [200, 302, 301])) {
+            $msg = ($link->username ? $link->username . '@' : '') . $this->baseUrl .
+                trim($link->getPath(), '/') . ' ' .
+                $link->getRoute() . ' caused a ' . $status . ' found on '
+                . $link->foundOn;
+            $this->logger->error($msg);
+            dd($msg);
+            dd( $status . ' error! ' . strlen($html));
+        }
+        if ($status == 500) {
+            dd('stopped, 500 error');
+        }
 
         //        $responseInfo = $response->getInfo();
         //        unset($responseInfo['pause_handler']);
@@ -281,14 +292,20 @@ class CrawlerService
         return $cleanHref;
     }
 
-    private function setRoute(Link $link)
+    private function setRoute(Link $link): void
     {
         $path = $link->getPath();
+        if (!$path) {
+            return;
+        }
         try {
             // hack
-            $path = parse_url($path, PHP_URL_PATH);
-
-            if ($route = $this->router->match($path)) {
+            $urlPath = parse_url($path, PHP_URL_PATH);
+            if (!$urlPath) {
+                $this->logger->error("Invalid path: $urlPath from $path");
+                return;
+            }
+            if ($route = $this->router->match($urlPath)) {
                 $link->setRoute($route['_route']);
                 $controller = $route['_controller'];
                 //                $reflection = new \ReflectionMethod($controller);
