@@ -3,6 +3,7 @@
 namespace Survos\CrawlerBundle;
 
 use Survos\CrawlerBundle\Command\CrawlCommand;
+use Survos\CrawlerBundle\Controller\CrawlerController;
 use Survos\CrawlerBundle\Services\CrawlerService;
 use Survos\CrawlerBundle\Twig\TwigExtension;
 use Symfony\Component\Config\Definition\Configurator\DefinitionConfigurator;
@@ -20,6 +21,14 @@ class SurvosCrawlerBundle extends AbstractBundle
      */
     public function loadExtension(array $config, ContainerConfigurator $container, ContainerBuilder $builder): void
     {
+
+        $dir =
+        $builder->autowire(CrawlerController::class)
+            ->setAutoconfigured(true)
+            ->setPublic(true)
+            ->setArgument('$bag', new Reference('parameter_bag'))
+        ;
+
         $builder->autowire(CrawlCommand::class)
 //            ->setArgument('$registry', new Reference('doctrine'))
             ->setArgument('$logger', new Reference('logger'))

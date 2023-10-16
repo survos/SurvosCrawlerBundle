@@ -1,0 +1,69 @@
+{% extends "base.html.twig" %}
+
+{% block stylesheets %}
+    {{ parent() }}
+    <link href="https://cdn.jsdelivr.net/npm/simple-datatables@latest/dist/style.css" rel="stylesheet" type="text/css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/simple-datatables@8.0.0/dist/column_filter.min.css">
+{% endblock %}
+
+{% block javascripts %}
+    <script type="module">
+        import {DataTable} from 'https://cdn.jsdelivr.net/npm/simple-datatables@8.0.0/+esm'
+        // import {DataTable} from "simple-datatables"
+        document.querySelectorAll(".simple-datatables").forEach(table => {
+            new DataTable(table, {
+                searchable: true,
+                fixedHeight: true,
+            });
+        });
+    </script>
+{% endblock %}
+{% block body %}
+
+    {% for header, data in crawldata %}
+        <h3>{{ header }}</h3>
+        <table class="simple-datatables">
+            <thead>
+            <tr>
+                <th>URL</th>
+                <th>route</th>
+            </tr>
+            </thead>
+            <tbody>
+            {% for d in data %}
+                <tr>
+                    <td>{{ d.path }}</td>
+                    <td>{{ d.route }}</td>
+                </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    {% endfor %}
+
+{#    {% for header, data in crawldata %}#}
+{#        <h3>{{ header }}</h3>#}
+{#        <div class="row">#}
+{#            {% component grid with {#}
+{#                data: data,#}
+{#                caller: _self,#}
+{#                columns: [#}
+{#                    {name: 'path'},#}
+{#                    'route',#}
+{#                    'statusCode',#}
+{#                    'rp'#}
+{#                ]#}
+{#            } %}#}
+{#                {% block path %}#}
+{#                    {{ row.path }}#}
+{#                {% endblock %}#}
+{#                {% block rp %}#}
+{#                    {{ row.rp|json_encode }}#}
+{#                {% endblock %}#}
+
+
+{#            {% endcomponent %}#}
+{#        </div>#}
+{#    {% endfor %}#}
+
+
+{% endblock %}
