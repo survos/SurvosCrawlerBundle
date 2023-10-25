@@ -10,6 +10,11 @@ That's what this bundle does.  Combine with code coverage, it's a fast and easy 
 composer req survos/crawler-bundle
 ```
 
+symfony new crawl-demo --webapp --version=7.0 --php=8.2 && cd crawl-demo
+composer config extra.symfony.allow-contrib true
+bin/console make:controller Bug -i
+composer req survos/crawler-bundle
+
 Start the server.  Until proxy is working (@todo) you need to use the IP address of the server if you're using the Symfony CLI.
 
 To set default values (@todo: install recipe)
