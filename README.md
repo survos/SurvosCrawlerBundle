@@ -10,10 +10,59 @@ That's what this bundle does.  Combine with code coverage, it's a fast and easy 
 composer req survos/crawler-bundle
 ```
 
-symfony new crawl-demo --webapp --version=7.0 --php=8.2 && cd crawl-demo
+
+symfony new crawler-7 --webapp --version=next --php=8.2 && cd crawler-7
 composer config extra.symfony.allow-contrib true
-bin/console make:controller Bug -i
-composer req survos/crawler-bundle
+echo "DATABASE_URL=sqlite:///%kernel.project_dir%/var/data.db" > .env.local
+# sed -i 's/"6.4.*"/"^7.0"/' composer.json
+composer update
+composer req api
+composer require orm-fixtures --dev            
+echo "firstName,string,16,yes," | sed "s/,/\n/g"  | bin/console -a make:entity Official
+echo "lastName,string,32,no," | sed "s/,/\n/g"  | bin/console make:entity Official
+echo "officialName,string,48,no," | sed "s/,/\n/g"  | bin/console make:entity Official
+echo "birthday,date_immutable,yes," | sed "s/,/\n/g"  | bin/console make:entity Official
+echo "gender,string,1,yes," | sed "s/,/\n/g"  | bin/console make:entity Official
+bin/console doctrine:schema:update --force --complete
+
+bin/console make:crud Official -q
+bin/console make:fixture CongressFixtures
+cat >x << 'END'
+public function load(ObjectManager $manager): void
+END
+cat x
+
+
+cat > src/DataFixtures/CongressFixtures.php <<'END'
+<?php
+
+namespace App\DataFixtures;
+
+use App\Entity\Official;
+use Doctrine\Bundle\FixturesBundle\Fixture;
+use Doctrine\Persistence\ObjectManager;
+
+class AppFixtures extends Fixture
+{
+    public function load(ObjectManager $manager): void
+    {
+        $url = 'https://theunitedstates.io/congress-legislators/legislators-current.json';
+        $json = file_get_contents($url);
+        foreach (json_decode($json) as $record) {
+            $name = $record->name;
+            $bio = $record->bio;
+            $official = (new Official())
+                ->setBirthday(new \DateTimeImmutable($bio->birthday))
+                ->setGender($bio->gender)
+                ->setFirstName($name->first)
+                ->setLastName($name->last)
+                ->setOfficialName($name->official_full ?? "$name->first $name->last");
+            $manager->persist($official);
+        }
+    }
+    $manager->flush();
+}
+END
 
 Start the server.  Until proxy is working (@todo) you need to use the IP address of the server if you're using the Symfony CLI.
 
