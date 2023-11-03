@@ -5,14 +5,14 @@ namespace Survos\CrawlerBundle\Controller;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\DependencyInjection\ParameterBag\ParameterBagInterface;
 use Symfony\Component\HttpFoundation\Response;
-use Symfony\Component\Routing\Annotation\Route;
+use Symfony\Component\Routing\Route;
 
 class CrawlerController extends AbstractController
 {
     public function __construct(private ParameterBagInterface $bag) {
 
     }
-//    #[Route(path: '/crawlerdata', name: 'survos_crawler_data', methods: ['GET'])]
+    #[Route(path: '/crawlerdata', name: 'survos_crawler_data', methods: ['GET'])]
     public function results(): Response
     {
         // hackish -- get the crawldata of the currently logged in user?

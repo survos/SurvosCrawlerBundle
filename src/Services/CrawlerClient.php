@@ -17,7 +17,9 @@ class CrawlerClient extends KernelBrowser
 {
     private TokenStorageInterface $tokenStorage;
 
-    public function __construct(KernelInterface $kernel,TokenStorageInterface $tokenStorage, array $server = [], History $history = null, CookieJar $cookieJar = null)
+    public function __construct(KernelInterface $kernel,
+                                TokenStorageInterface $tokenStorage,
+                                array $server = [], History $history = null, CookieJar $cookieJar = null)
     {
         parent::__construct($kernel, $server, $history, $cookieJar);
         $this->tokenStorage = $tokenStorage;
@@ -27,7 +29,7 @@ class CrawlerClient extends KernelBrowser
     protected function doRequest(object $request): Response
     {
         //        assert(false);
-        
+
         $response = parent::doRequest($request);
         return $response;
     }
@@ -39,6 +41,7 @@ class CrawlerClient extends KernelBrowser
      */
     public function loginUser(object $user, string $firewallContext = 'main'): static
     {
+
         if (!interface_exists(UserInterface::class)) {
             throw new \LogicException(sprintf('"%s" requires symfony/security-core to be installed.', __METHOD__));
         }

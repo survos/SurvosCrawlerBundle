@@ -4,12 +4,18 @@ namespace Survos\CrawlerBundle\Services;
 
 use Doctrine\Persistence\ManagerRegistry;
 use Exception;
+use Symfony\Component\Console\Input\ArrayInput;
+use Symfony\Component\HttpFoundation\ChainRequestMatcher;
+use Symfony\Component\HttpFoundation\RequestMatcher;
 use Symfony\Component\HttpKernel\KernelInterface;
 use Psr\Log\LoggerInterface;
 use Survos\CrawlerBundle\Model\Link;
 use Symfony\Bundle\FrameworkBundle\KernelBrowser;
 use Symfony\Component\DomCrawler\Crawler;
+use Symfony\Component\Routing\Exception\MethodNotAllowedException;
 use Symfony\Component\Routing\Exception\ResourceNotFoundException;
+use Symfony\Component\Routing\Matcher\TraceableUrlMatcher;
+use Symfony\Component\Routing\Matcher\UrlMatcher;
 use Symfony\Component\Routing\RouterInterface;
 use Symfony\Component\Security\Core\User\UserInterface;
 use Symfony\Contracts\HttpClient\HttpClientInterface;
@@ -43,7 +49,8 @@ class CrawlerService
         private ?string $username = null,
         private array $users = [],
         private int $maxDepth = 1,
-        private array $routesToIgnore = []
+        private array $routesToIgnore = [],
+        private array $pathsToIgnore = [],
     ) {
         //        $this->baseUrl = 'https://127.0.0.1:8001';
     }
@@ -147,9 +154,8 @@ class CrawlerService
             $createClient = $this->createClient();
             $createClient->loginUser($user);
             $clients[$username] = $createClient;
-            $this->crawlerClient = $clients[$username];
-            return;
         }
+        $this->crawlerClient = $clients[$username];
         //        $this->router = $container->get('router');
         //        $this->cache = $container->get('cache.app');
     }
@@ -166,23 +172,31 @@ class CrawlerService
         return sprintf("%s-%s", $this->username, $path);
     }
 
-    public function scrape(Link $link, int $depth = 0): void
+    public function scrape(Link $link, int $depth = 0): ?Link
     {
         //        $this->logger->info("Scraping " . $link->getPath());
         $link->setSeen(true);
         if ($link->getDepth() > $this->maxDepth) {
-            return;
+            return null;
+        }
+
+        // check for paths before finding the route
+        foreach ($this->pathsToIgnore as $pathPattern) {
+            if (preg_match($pathPattern, $link->getPath())) {
+                $link->setLinkStatus($link::STATUS_IGNORED);
+                return $link;
+            }
         }
 
         $this->setRoute($link);
 
         if ($this->isIgnored($link->getPath())) {
             $link->setLinkStatus($link::STATUS_IGNORED);
-            return;
+            return $link;
         }
 
         if ($link->getLinkStatus() === $link::STATUS_IGNORED) {
-            return;
+            return $link;
         }
 
         // ugh, sloppy
@@ -222,13 +236,12 @@ class CrawlerService
         }
         // hmm, how should 301's be tracked?
         if (!in_array($status, [200, 302, 301])) {
+            dd($response);
             $msg = ($link->username ? $link->username . '@' : '') . $this->baseUrl .
                 trim($link->getPath(), '/') . ' ' .
                 $link->getRoute() . ' caused a ' . $status . ' found on '
                 . $link->foundOn;
             $this->logger->error($msg);
-            dd($msg);
-            dd( $status . ' error! ' . strlen($html));
         }
         if ($status == 500) {
             dd('stopped, 500 error');
@@ -241,7 +254,7 @@ class CrawlerService
         //        assert(array_key_exists('info', $info));
         //        $crawler = $client->request('GET',  $base . $path);
         if (! $html) {
-            return;
+            return $link;
         }
 
         $crawler = new Crawler($html, $url);
@@ -269,6 +282,7 @@ class CrawlerService
                 //$pageLink->setDepth($depth + 1);
             }
         );
+        return $link;
     }
 
     private function cleanup(string $href): ?string
@@ -298,24 +312,53 @@ class CrawlerService
         if (!$path) {
             return;
         }
-        try {
             // hack
             $urlPath = parse_url($path, PHP_URL_PATH);
             if (!$urlPath) {
                 $this->logger->error("Invalid path: $urlPath from $path");
                 return;
             }
-            if ($route = $this->router->match($urlPath)) {
-                $link->setRoute($route['_route']);
-                $controller = $route['_controller'];
-                //                $reflection = new \ReflectionMethod($controller);
-                foreach (['_route', '_controller'] as $x) {
-                    unset($route[$x]);
-                }
-                if (count($route)) {
-                    $link->setRp($route);
-                }
+                $this->logger->warning($urlPath);
+                $context = $this->router->getContext();
+                $matcher = new UrlMatcher($this->router->getRouteCollection(), $context);
+                $matcher = new TraceableUrlMatcher($this->router->getRouteCollection(), $context);
+//                foreach ($this->expressionLanguageProviders as $provider) {
+//                    $matcher->addExpressionLanguageProvider($provider);
+//                }
+
+                $traces = $matcher->getTraces($urlPath);
+        $routeName = null;
+        foreach ($traces as $trace) {
+            if (TraceableUrlMatcher::ROUTE_MATCHES == $trace['level']) {
+                $routeName = $trace['name'];
+                break;
             }
+        }
+
+//        try {
+//                $route = $this->router->match($urlPath);
+//            } catch (MethodNotAllowedException $exception) {
+//                dd(__METHOD__, __FILE__, __LINE__, $exception, $urlPath);
+//            } catch (\Exception $exception) {
+//                dd($exception, $urlPath);
+//            }
+            if ($routeName) {
+                $route = $this->router->getRouteCollection()->get($routeName);
+                $link->setRoute($routeName);
+//                $controller = $route['_controller'];
+                //                $reflection = new \ReflectionMethod($controller);
+//                foreach (['_route', '_controller'] as $x) {
+//                    unset($route[$x]);
+//                }
+                // @todo: setRp!!
+                if ($routeName == 'event_show') {
+                    dd($route);
+                }
+//                if (count($route)) {
+//                    $link->setRp($route);
+//                }
+            }
+        try {
         } catch (ResourceNotFoundException $exception) {
             // @todo: check for /public
             $link

@@ -144,9 +144,9 @@ class CrawlCommand extends Command
             $loop = 0;
             while ($link = $crawlerService->getUnvisitedLink($username)) {
                 $loop++;
-                $this->logger->info("Considering " . $link->getPath());
                 //                $io->info("Considering " . $link->getPath());
                 $crawlerService->scrape($link);
+                $this->logger->info(sprintf("%s %s (%s)", $link->getPath(), $link->getRoute(), $link->getLinkStatus()));
                 if (! $link->testable()) {
 //                    $io->info("Rejecting " . $link->getPath() . ' ' . $link->getRoute());
                 }
@@ -290,7 +290,7 @@ At most, <comment>%s</comment> pages will be crawled.', $this->domain, $this->st
      *
      * @author  Joe Sexton <joe@webtipblog.com
      */
-    protected function interact(InputInterface $input, OutputInterface $output)
+    protected function interact(InputInterface $input, OutputInterface $output): void
     {
         if (! $this->startingLink) {
             $defaultStart = 'jardin.wip';
