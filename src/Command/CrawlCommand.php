@@ -233,7 +233,7 @@ At most, <comment>%s</comment> pages will be crawled.', $this->domain, $this->st
             $url = array_pop($this->linksToProcess);
 
             // ignore certain routes
-            if (preg_match('{quick|copy-and-import|go-to-observe|docs}', $url)) {
+            if (preg_match('{quick|copy-and-import|go-to-observe|docs|_profiler}', $url)) {
                 $output->writeln('IGNORING: ' . $url);
                 continue;
             }

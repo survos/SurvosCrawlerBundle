@@ -12,6 +12,7 @@ use Psr\Log\LoggerInterface;
 use Survos\CrawlerBundle\Model\Link;
 use Symfony\Bundle\FrameworkBundle\KernelBrowser;
 use Symfony\Component\DomCrawler\Crawler;
+use Symfony\Component\HttpKernel\Profiler\Profiler;
 use Symfony\Component\Routing\Exception\MethodNotAllowedException;
 use Symfony\Component\Routing\Exception\ResourceNotFoundException;
 use Symfony\Component\Routing\Matcher\TraceableUrlMatcher;
@@ -51,8 +52,13 @@ class CrawlerService
         private int $maxDepth = 1,
         private array $routesToIgnore = [],
         private array $pathsToIgnore = [],
+        ?Profiler $profiler = null
     ) {
         //        $this->baseUrl = 'https://127.0.0.1:8001';
+        if (null !== $profiler) {
+            // if it exists, disable the profiler for this particular controller action
+            $profiler->disable();
+        }
     }
 
     public function getBaseUrl(): string
@@ -236,7 +242,6 @@ class CrawlerService
         }
         // hmm, how should 301's be tracked?
         if (!in_array($status, [200, 302, 301])) {
-            dd($response);
             $msg = ($link->username ? $link->username . '@' : '') . $this->baseUrl .
                 trim($link->getPath(), '/') . ' ' .
                 $link->getRoute() . ' caused a ' . $status . ' found on '
