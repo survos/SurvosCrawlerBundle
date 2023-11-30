@@ -67,6 +67,11 @@ class CrawlCommand extends Command
     /**
      * @var string
      */
+    protected $locale = 'en';
+
+    /**
+     * @var string
+     */
     protected $securityFirewall = 'secured_area';
 
     /**
@@ -78,7 +83,7 @@ class CrawlCommand extends Command
      * index routes containing these keywords only once
      * @var array
      */
-    protected $ignoredRouteKeywords;
+    protected $ignoredRouteKeywords = ['_profiler'];
 
     /**
      * @var array
@@ -100,9 +105,11 @@ class CrawlCommand extends Command
             new InputArgument('username', InputArgument::OPTIONAL, 'Username', 'o'),
             new InputArgument('password', InputArgument::OPTIONAL, 'Password', 'o'),
             new InputOption('limit', null, InputOption::VALUE_REQUIRED, 'Limit the number of links to process, prevents infinite crawling', 0),
+            new InputOption('locale', null, InputOption::VALUE_REQUIRED, 'Crawler will crawl only given locale url', 'en'),
             new InputOption('security-firewall', null, InputOption::VALUE_REQUIRED, 'Firewall name', 'secured_area'),
             new InputOption('ignore-route-keyword', null, InputOption::VALUE_REQUIRED, 'regex to ignore routes'),
 //            new InputOption('ignore-route-keyword', null, InputOption::VALUE_IS_ARRAY | InputOption::VALUE_REQUIRED, 'Skip routes containing this string', []),
+
         ]);
     }
 
@@ -114,6 +121,8 @@ class CrawlCommand extends Command
      */
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
+        $this->locale = $input->getOption('locale');
+
         $io = new SymfonyStyle($input, $output);
 
         $table = new Table($output);
@@ -180,7 +189,7 @@ class CrawlCommand extends Command
         $this->username = $input->getArgument('username');
         $this->searchLimit = $input->getOption('limit');
         $this->securityFirewall = $input->getOption('security-firewall');
-        $this->ignoredRouteKeywords = $input->getOption('ignore-route-keyword');
+        //array_push($this->ignoredRouteKeywords,$input->getOption('ignore-route-keyword'));
         $this->output = $output;
 
         if (! $this->startingLink) {
@@ -210,7 +219,7 @@ class CrawlCommand extends Command
         $stopwatch = new Stopwatch();
 
         // start crawling
-        $output->writeln(sprintf('Dominating <comment>%s</comment>, starting at <comment>%s</comment>.  
+        $output->writeln(sprintf('Dominating <comment>%s</comment>, starting at <comment>%s</comment>.
 At most, <comment>%s</comment> pages will be crawled.', $this->domain, $this->startingLink, $this->searchLimit));
 
         // crawl starting link

@@ -8,7 +8,10 @@
 
 {% block javascripts %}
     {{ parent() }}
+
+
     <script type="module">
+
         import {DataTable} from 'https://cdn.jsdelivr.net/npm/simple-datatables@8.0.0/+esm'
         // import {DataTable} from "simple-datatables"
         document.querySelectorAll(".simple-datatables").forEach(table => {
@@ -22,18 +25,21 @@
 {% block body %}
 
     {% for header, data in crawldata %}
+{#        {{ loop.index == 1 ? dump(data) }}#}
         <h3>{{ header }}</h3>
         <table class="simple-datatables">
             <thead>
             <tr>
                 <th>URL</th>
+                <th>Found On</th>
                 <th>route</th>
             </tr>
             </thead>
             <tbody>
             {% for d in data %}
                 <tr>
-                    <td>{{ d.path }}</td>
+                    <td><a href="{{ d.path }}">{{ d.path }}</a></td>
+                    <td><a href="{{ d.foundOn }}">{{ d.foundOn }}</a></td>
                     <td>{{ d.route }}</td>
                 </tr>
             {% endfor %}

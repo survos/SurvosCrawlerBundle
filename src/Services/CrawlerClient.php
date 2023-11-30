@@ -3,26 +3,35 @@
 namespace Survos\CrawlerBundle\Services;
 
 use Symfony\Bundle\FrameworkBundle\KernelBrowser;
+use Symfony\Bundle\SecurityBundle\Security;
 use Symfony\Component\BrowserKit\AbstractBrowser;
 use Symfony\Component\BrowserKit\CookieJar;
 use Symfony\Component\BrowserKit\History;
+use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\HttpFoundation\Session\Storage\SessionStorageFactoryInterface;
 use Symfony\Component\HttpKernel\KernelInterface;
+use Symfony\Component\Security\Core\Authentication\Token\UsernamePasswordToken;
 use Symfony\Component\Security\Core\User\UserInterface;
 use Symfony\Bundle\FrameworkBundle\Test\TestBrowserToken;
 use Symfony\Component\BrowserKit\Cookie;
 use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInterface;
-
+use Symfony\Component\HttpFoundation\Session\SessionFactory;
 class CrawlerClient extends KernelBrowser
 {
     private TokenStorageInterface $tokenStorage;
-
+    protected Security $security;
+    protected SessionFactory $sessionStorageFactory;
     public function __construct(KernelInterface $kernel,
                                 TokenStorageInterface $tokenStorage,
+                                Security $security,
+                                SessionFactory $sessionStorageFactory,
                                 array $server = [], History $history = null, CookieJar $cookieJar = null)
     {
         parent::__construct($kernel, $server, $history, $cookieJar);
         $this->tokenStorage = $tokenStorage;
+        $this->security = $security;
+        $this->sessionStorageFactory = $sessionStorageFactory;
     }
 
 
@@ -49,21 +58,25 @@ class CrawlerClient extends KernelBrowser
         if (!$user instanceof UserInterface) {
             throw new \LogicException(sprintf('The first argument of "%s" must be instance of "%s", "%s" provided.', __METHOD__, UserInterface::class, get_debug_type($user)));
         }
-
-        $token = new TestBrowserToken($user->getRoles(), $user, $firewallContext);
+        $token = new UsernamePasswordToken($user, $firewallContext, $user->getRoles());
+//        $token = new TestBrowserToken($user->getRoles(), $user, $firewallContext);
         // required for compatibility with Symfony 5.4
         if (method_exists($token, 'isAuthenticated')) {
             $token->setAuthenticated(true, false);
         }
 
         $container = $this->getContainer();
+
+        $request = new Request();
+        $session = $this->sessionStorageFactory->createSession();
+
+        // Set the session for the request
+        $request->setSession($session);
+
+        $container->get('request_stack')->push($request);
         $this->tokenStorage->setToken($token);
 
-        if (!$container->has('session.factory')) {
-            return $this;
-        }
-
-        $session = $container->get('session.factory')->createSession();
+        $session = $this->sessionStorageFactory->createSession();
         $session->set('_security_'.$firewallContext, serialize($token));
         $session->save();
 
@@ -74,7 +87,6 @@ class CrawlerClient extends KernelBrowser
             $cookie = new Cookie($session->getName(), $session->getId(), null, null, $domain);
             $this->getCookieJar()->set($cookie);
         }
-
         return $this;
     }
 }

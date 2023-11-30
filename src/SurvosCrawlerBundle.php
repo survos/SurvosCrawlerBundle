@@ -50,12 +50,14 @@ class SurvosCrawlerBundle extends AbstractBundle
             ->setArgument('$baseUrl', $config['base_url'])
             ->setArgument('$users', $config['users'])
             ->setArgument('$kernel', new Reference('kernel'))
+            ->setArgument('$security', new Reference('security.helper'))
             ->setArgument('$linkList', [])
             ->setArgument('$username', "")
             ->setArgument('$maxDepth', $config['max_depth'])
             ->setArgument('$tokenStorage', new Reference('security.untracked_token_storage'))
             ->setArgument('$routesToIgnore', $config['routes_to_ignore'])
             ->setArgument('$pathsToIgnore', $config['paths_to_ignore'])
+            ->setArgument('$sessionStorageFactory',new Reference('session.factory'))
         ;
         $container->services()->alias(CrawlerService::class, $crawler_service_id);
 

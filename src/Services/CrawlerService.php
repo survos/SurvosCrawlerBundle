@@ -24,6 +24,8 @@ use Symfony\Component\DependencyInjection\Reference;
 use Symfony\Component\DependencyInjection\ServiceLocator;
 use function Symfony\Component\String\u;
 use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInterface;
+use Symfony\Bundle\SecurityBundle\Security;
+use Symfony\Component\HttpFoundation\Session\Storage\SessionStorageFactoryInterface;
 
 class CrawlerService
 {
@@ -46,18 +48,20 @@ class CrawlerService
         private LoggerInterface $logger,
         private KernelInterface $kernel,
         private TokenStorageInterface $tokenStorage,
+        ?Profiler $profiler = null,
         private array $linkList = [],
         private ?string $username = null,
         private array $users = [],
         private int $maxDepth = 1,
         private array $routesToIgnore = [],
         private array $pathsToIgnore = [],
-        ?Profiler $profiler = null
+        protected Security $security,
+        protected $sessionStorageFactory,
     ) {
         //        $this->baseUrl = 'https://127.0.0.1:8001';
         if (null !== $profiler) {
             // if it exists, disable the profiler for this particular controller action
-            $profiler->disable();
+//            $profiler->disable();
         }
     }
 
@@ -180,15 +184,20 @@ class CrawlerService
 
     public function scrape(Link $link, int $depth = 0): ?Link
     {
+
         //        $this->logger->info("Scraping " . $link->getPath());
         $link->setSeen(true);
+
         if ($link->getDepth() > $this->maxDepth) {
             return null;
         }
 
+        if (!in_array('_profiler', $this->pathsToIgnore)) {
+            $this->pathsToIgnore[] = '_profiler';
+        }
         // check for paths before finding the route
         foreach ($this->pathsToIgnore as $pathPattern) {
-            if (preg_match($pathPattern, $link->getPath())) {
+            if (preg_match('#'.$pathPattern.'#', $link->getPath())) {
                 $link->setLinkStatus($link::STATUS_IGNORED);
                 return $link;
             }
@@ -207,6 +216,7 @@ class CrawlerService
 
         // ugh, sloppy
         $url = trim($this->baseUrl, '/') . '/' . trim($link->getPath(), '/');
+
         assert(is_string($url));
         assert(parse_url($url), "Invalid url: " . $url);
         //        $response = $this->cache->get(md5($url), function(CacheItem $item) use ($url, $info, $path) {
@@ -232,6 +242,7 @@ class CrawlerService
         }
 
         if ($status <> 200) {
+            //echo $response->getContent();exit;
             // @todo: what should we do here?
 //            dump($response->getContent());
             $this->logger->error("$url " . $status);
@@ -241,6 +252,7 @@ class CrawlerService
             $html = $response->getContent();
         }
         // hmm, how should 301's be tracked?
+
         if (!in_array($status, [200, 302, 301])) {
             $msg = ($link->username ? $link->username . '@' : '') . $this->baseUrl .
                 trim($link->getPath(), '/') . ' ' .
@@ -249,8 +261,9 @@ class CrawlerService
             $this->logger->error($msg);
         }
         if ($status == 500) {
-            dd('stopped, 500 error');
+            //dd('stopped, 500 error');
         }
+
 
         //        $responseInfo = $response->getInfo();
         //        unset($responseInfo['pause_handler']);
@@ -273,8 +286,10 @@ class CrawlerService
                 if (empty($cleanHref)) {
                     return null;
                 }
-                if (preg_match('{^/(_(profiler|wdt)|css|images|js)/}', $cleanHref)) {
-                    //                dd($href);
+//                var_dump($cleanHref);
+                if (preg_match('/^\/(_profiler|_wdt|css|images|js)\//i', $cleanHref)) {
+//                    echo "====================================";
+//                    dd($cleanHref);
                     return null;
                 }
                 $parts = parse_url($cleanHref);
@@ -357,7 +372,7 @@ class CrawlerService
 //                }
                 // @todo: setRp!!
                 if ($routeName == 'event_show') {
-                    dd($route);
+                    //dd($route);
                 }
 //                if (count($route)) {
 //                    $link->setRp($route);
@@ -374,7 +389,7 @@ class CrawlerService
     }
 
     private function createClient() {
-        $crawlerClient = new CrawlerClient($this->kernel, $this->tokenStorage);
+        $crawlerClient = new CrawlerClient($this->kernel, $this->tokenStorage, $this->security, $this->sessionStorageFactory);
         return $crawlerClient;
     }
 
