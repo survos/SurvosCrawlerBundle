@@ -48,6 +48,9 @@ class CrawlerService
         private LoggerInterface $logger,
         private KernelInterface $kernel,
         private TokenStorageInterface $tokenStorage,
+        protected Security $security,
+        protected $sessionStorageFactory,
+
         ?Profiler $profiler = null,
         private array $linkList = [],
         private ?string $username = null,
@@ -55,13 +58,11 @@ class CrawlerService
         private int $maxDepth = 1,
         private array $routesToIgnore = [],
         private array $pathsToIgnore = [],
-        protected Security $security,
-        protected $sessionStorageFactory,
     ) {
         //        $this->baseUrl = 'https://127.0.0.1:8001';
         if (null !== $profiler) {
             // if it exists, disable the profiler for this particular controller action
-//            $profiler->disable();
+            $profiler->disable();
         }
     }
 

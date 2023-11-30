@@ -43,12 +43,12 @@ class CrawlerClient extends KernelBrowser
         return $response;
     }
 
-        /**
+    /**
      * @param UserInterface $user
      *
      * @return $this
      */
-    public function loginUser(object $user, string $firewallContext = 'main'): static
+    public function loginUser(object $user, string $firewallContext = 'main', array $tokenAttributes = []): static
     {
 
         if (!interface_exists(UserInterface::class)) {

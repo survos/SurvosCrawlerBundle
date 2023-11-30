@@ -11,15 +11,19 @@
 
 
     <script type="module">
+        import DataTables from "https://cdn.jsdelivr.net/npm/datatables.net-bs5@1.13.7/+esm";
+            // "datatables.net-select": "https://cdn.jsdelivr.net/npm/datatables.net-select@1.7.0/+esm",
+            // "datatables.net-select-bs5": "https://cdn.jsdelivr.net/npm/datatables.net-select-bs5@1.7.0/+esm"
 
-        import {DataTable} from 'https://cdn.jsdelivr.net/npm/simple-datatables@8.0.0/+esm'
-        // import {DataTable} from "simple-datatables"
-        document.querySelectorAll(".simple-datatables").forEach(table => {
-            new DataTable(table, {
-                searchable: true,
-                fixedHeight: true,
-            });
-        });
+        let table = new DataTables('#crawler-table');
+        // import {DataTable} from 'https://cdn.jsdelivr.net/npm/simple-datatables@8.0.0/+esm'
+        // // import {DataTable} from "simple-datatables"
+        // document.querySelectorAll(".simple-datatables").forEach(table => {
+        //     new DataTable(table, {
+        //         searchable: true,
+        //         fixedHeight: true,
+        //     });
+        // });
     </script>
 {% endblock %}
 {% block body %}
@@ -27,7 +31,7 @@
     {% for header, data in crawldata %}
 {#        {{ loop.index == 1 ? dump(data) }}#}
         <h3>{{ header }}</h3>
-        <table class="simple-datatables">
+        <table id="crawler-table" class="simple-datatables">
             <thead>
             <tr>
                 <th>URL</th>
