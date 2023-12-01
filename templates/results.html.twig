@@ -17,26 +17,28 @@
     <script type="module">
 
       import "https://code.jquery.com/jquery-3.7.0.js";
+      import DataTables from "https://cdn.jsdelivr.net/npm/datatables.net-bs5@1.13.7/+esm";
       import "https://cdn.datatables.net/1.13.7/js/jquery.dataTables.min.js";
       import "https://cdn.datatables.net/searchpanes/2.2.0/js/dataTables.searchPanes.min.js";
       import "https://cdn.datatables.net/select/1.7.0/js/dataTables.select.min.js";
-        // import DataTables from "https://cdn.jsdelivr.net/npm/datatables.net-bs5@1.13.7/+esm";
             // "datatables.net-select": "https://cdn.jsdelivr.net/npm/datatables.net-select@1.7.0/+esm",
             // "datatables.net-select-bs5": "https://cdn.jsdelivr.net/npm/datatables.net-select-bs5@1.7.0/+esm"
       // new DataTable('#crawler-table', {
       //   dom: 'Plfrtip'
       // });
-      let table = new DataTables('#crawler-table');
-
-      var table = $('#crawler-table').DataTable({
+      let table = new DataTables('#crawler-table', {
         searchPanes: {
           layout: 'columns-1'
         },
-        dom: '<"dtsp-dataTable"frtip>',
-        pageLength: 20
+        dom: '<"dtsp-dataTable"frtip>P',
+        pageLength: 10
       });
-      table.searchPanes()
-      $("div.dtsp-verticalPanes").append(table.searchPanes.container());
+      table.searchPanes();
+      document.querySelector("div.dtsp-verticalPanes").appendChild(
+        table.searchPanes.container()
+      );
+
+      // $("div.dtsp-verticalPanes").append(table.searchPanes.container());
         // let table = new DataTables('#crawler-table');
         // import {DataTable} from 'https://cdn.jsdelivr.net/npm/simple-datatables@8.0.0/+esm'
         // // import {DataTable} from "simple-datatables"
