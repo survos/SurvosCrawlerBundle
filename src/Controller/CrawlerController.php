@@ -20,15 +20,19 @@ class CrawlerController extends AbstractController
         if (!file_exists($filename)) {
             throw new \Exception("Run survos:crawl to create $filename");
         }
+
         $crawlData = json_decode(file_get_contents($filename), true);
         // @todo: filter out null status codes, here or in searchhpanes?
+        $tableData = [];
         foreach ($crawlData as $header => $data) {
-            if ($data['statusCode'] ?? false) {
-                $filteredData[] = $data;
+            foreach ($data as $datum) {
+                $datum['user'] = $header;
+                $tableData[] = $datum;
             }
         }
 
         return $this->render('@SurvosCrawler/results.html.twig', [
+            'tableData' => $tableData,
             'crawldata' => $crawlData
         ]);
     }
