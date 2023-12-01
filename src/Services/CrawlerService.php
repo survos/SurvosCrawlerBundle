@@ -58,12 +58,24 @@ class CrawlerService
         private int $maxDepth = 1,
         private array $routesToIgnore = [],
         private array $pathsToIgnore = [],
+
     ) {
         //        $this->baseUrl = 'https://127.0.0.1:8001';
         if (null !== $profiler) {
             // if it exists, disable the profiler for this particular controller action
             $profiler->disable();
         }
+    }
+
+    public function getConfig(): array
+    {
+        return $this->config;
+    }
+
+    public function setConfig(array $config): CrawlerService
+    {
+        $this->config = $config;
+        return $this;
     }
 
     public function getBaseUrl(): string

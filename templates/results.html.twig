@@ -30,6 +30,8 @@
 {% endblock %}
 {% block body %}
 
+    {{ crawlerConfig|json_encode }}
+
     {# if we have grid bundle installed, this would be very easy.  But we don't want to require it. we could put the table utility in core, though #}
   <table id="crawler-table">
     <thead>

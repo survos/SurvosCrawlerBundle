@@ -2,6 +2,7 @@
 
 namespace Survos\CrawlerBundle\Controller;
 
+use Survos\CrawlerBundle\Services\CrawlerService;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\DependencyInjection\ParameterBag\ParameterBagInterface;
 use Symfony\Component\HttpFoundation\Response;
@@ -13,7 +14,7 @@ class CrawlerController extends AbstractController
 
     }
     #[Route(path: '/crawlerdata', name: 'survos_crawler_data', methods: ['GET'])]
-    public function results(): Response
+    public function results(CrawlerService $crawlerService): Response
     {
         // hackish -- get the crawldata of the currently logged in user?
         $filename = $this->bag->get('kernel.project_dir') . '/crawldata.json';
@@ -32,6 +33,7 @@ class CrawlerController extends AbstractController
         }
 
         return $this->render('@SurvosCrawler/results.html.twig', [
+            'crawlerConfig' => $crawlerService->getConfig(),
             'tableData' => $tableData,
             'crawldata' => $crawlData
         ]);
