@@ -4,28 +4,48 @@
     {{ parent() }}
 {#    <link href="https://cdn.jsdelivr.net/npm/simple-datatables@latest/dist/style.css" rel="stylesheet" type="text/css">#}
 {#    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/simple-datatables@8.0.0/dist/column_filter.min.css">#}
+
+  <link rel="stylesheet" href="https://cdn.datatables.net/1.13.7/css/jquery.dataTables.min.css">
+  <link rel="stylesheet" href="https://cdn.datatables.net/searchpanes/2.2.0/css/searchPanes.dataTables.min.css">
+  <link rel="stylesheet" href="https://cdn.datatables.net/select/1.7.0/css/select.dataTables.min.css">
+
 {% endblock %}
 
 {% block javascripts %}
     {{ parent() }}
 
     <script type="module">
-      // https://datatables.net/extensions/searchpanes/examples/customisation/verticalPanes.html
-        import DataTables from "https://cdn.jsdelivr.net/npm/datatables.net-bs5@1.13.7/+esm";
+
+      import "https://code.jquery.com/jquery-3.7.0.js";
+      import "https://cdn.datatables.net/1.13.7/js/jquery.dataTables.min.js";
+      import "https://cdn.datatables.net/searchpanes/2.2.0/js/dataTables.searchPanes.min.js";
+      import "https://cdn.datatables.net/select/1.7.0/js/dataTables.select.min.js";
+        // import DataTables from "https://cdn.jsdelivr.net/npm/datatables.net-bs5@1.13.7/+esm";
             // "datatables.net-select": "https://cdn.jsdelivr.net/npm/datatables.net-select@1.7.0/+esm",
             // "datatables.net-select-bs5": "https://cdn.jsdelivr.net/npm/datatables.net-select-bs5@1.7.0/+esm"
+      // new DataTable('#crawler-table', {
+      //   dom: 'Plfrtip'
+      // });
+      let table = new DataTables('#crawler-table');
 
-        let table = new DataTables('#crawler-table');
-
-        var table = $('#crawler-table').DataTable({
-          searchPanes: {
-            layout: 'columns-1'
-          },
-          dom: '<"dtsp-dataTable"frtip>',
-          pageLength: 20
-        });
-        table.searchPanes()
-        $("div.dtsp-verticalPanes").append(table.searchPanes.container());
+      var table = $('#crawler-table').DataTable({
+        searchPanes: {
+          layout: 'columns-1'
+        },
+        dom: '<"dtsp-dataTable"frtip>',
+        pageLength: 20
+      });
+      table.searchPanes()
+      $("div.dtsp-verticalPanes").append(table.searchPanes.container());
+        // let table = new DataTables('#crawler-table');
+        // import {DataTable} from 'https://cdn.jsdelivr.net/npm/simple-datatables@8.0.0/+esm'
+        // // import {DataTable} from "simple-datatables"
+        // document.querySelectorAll(".simple-datatables").forEach(table => {
+        //     new DataTable(table, {
+        //         searchable: true,
+        //         fixedHeight: true,
+        //     });
+        // });
     </script>
 {% endblock %}
 {% block body %}
