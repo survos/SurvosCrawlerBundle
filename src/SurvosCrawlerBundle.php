@@ -5,7 +5,6 @@ namespace Survos\CrawlerBundle;
 use Survos\CrawlerBundle\Command\CrawlCommand;
 use Survos\CrawlerBundle\Controller\CrawlerController;
 use Survos\CrawlerBundle\Services\CrawlerService;
-use Survos\CrawlerBundle\Twig\TwigExtension;
 use Symfony\Component\Config\Definition\Configurator\DefinitionConfigurator;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\DependencyInjection\Loader\Configurator\ContainerConfigurator;
