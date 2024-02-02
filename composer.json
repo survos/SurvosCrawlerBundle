@@ -9,6 +9,7 @@
             "email": "tacman@gmail.com"
         }
     ],
+    "require": {
         "php": "^8.2",
         "symfony/config": "^6.4 || ^7.0",
         "symfony/dependency-injection": "^6.4 || ^7.0",
