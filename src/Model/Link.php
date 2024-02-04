@@ -36,7 +36,7 @@ class Link
 
     public function setMemory(): Link
     {
-        $this->memory = round(memory_get_usage()/1048576,2);
+        $this->memory = (int)round(memory_get_usage()/1048576,2);
         return $this;
     }
 
