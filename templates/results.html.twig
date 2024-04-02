@@ -15,7 +15,7 @@
     {{ parent() }}
 
     <script type="module">
-        import bootstrap from 'https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/+esm'
+        import bootstrap from 'https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/+esm'
         import "https://cdn.jsdelivr.net/npm/jquery@3.7.1/+esm";
 
         import DataTables from "https://cdn.jsdelivr.net/npm/datatables.net-bs5@1.13.7/+esm";
@@ -62,8 +62,6 @@
     #}
 {% endblock %}
 {% block body %}
-
-    {{ crawlerConfig|json_encode }}
 
     <div class="dtsp-verticalContainer row">
         <div class="dtsp-verticalPanes col-3"></div>

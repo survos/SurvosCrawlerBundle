@@ -106,13 +106,13 @@ class VisitLinksTest extends WebTestCase
 
     public function linksToVisit()
     {
-        $text = [
-            ['admin','/', 200],
-            ['user', '/', 200],
-            ['admin', '/admin', 200],
-            ['user', '/admin', 403],
-            [null, '/admin', 302]
-        ];
+//        $text = [
+//            ['admin','/', 200],
+//            ['user', '/', 200],
+//            ['admin', '/admin', 200],
+//            ['user', '/admin', 403],
+//            [null, '/admin', 302]
+//        ];
 
         $x = [];
         $kernel = $this->getContainer()->get('kernel');
