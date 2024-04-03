@@ -136,7 +136,8 @@ class CrawlCommand extends Command
 
         $crawlerService->resetLinkList();
 
-        foreach ([...$usernames, null] as $username) {
+        // start with null, so that it is logged out.  Otherwise, it gets the last user!  BUG
+        foreach ([null, ...$usernames] as $username) {
             //        foreach ($usernames as $user) {
             if ($user = $this->crawlerService->getUser($username)) {
                 $username = $user->getUserIdentifier(); //assert that they're the same?
@@ -153,11 +154,11 @@ class CrawlCommand extends Command
             $loop = 0;
             while ($link = $crawlerService->getUnvisitedLink($username)) {
                 $loop++;
-                //                $io->info("Considering " . $link->getPath());
+                $io->info(sprintf("Considering %s | %s", $link->getPath(), $link->getRoute()));
                 $crawlerService->scrape($link);
                 $this->logger->info(sprintf("%s %s (%s)", $link->getPath(), $link->getRoute(), $link->getLinkStatus()));
                 if (! $link->testable()) {
-//                    $io->info("Rejecting " . $link->getPath() . ' ' . $link->getRoute());
+                    $io->info("Rejecting " . $link->getPath() . ' ' . $link->getRoute());
                 }
                 if (($limit = $input->getOption('limit')) && ($loop > $limit)) {
                     break;

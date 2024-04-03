@@ -20,7 +20,8 @@
     },
     "require-dev": {
         "phpstan/phpstan": "^1.10",
-        "phpunit/phpunit": "^11.0"
+        "phpunit/phpunit": "^11.0",
+        "zenstruck/browser": "^1.8"
     },
     "conflict": {
         "survos/api-grid-bundle": "<1.2.57",

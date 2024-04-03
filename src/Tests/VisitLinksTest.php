@@ -17,10 +17,12 @@ use Symfony\Component\Panther\Client as PantherClient;
 use Symfony\Component\HttpFoundation\Session\Session;
 use Symfony\Component\HttpFoundation\Session\Storage\MockFileSessionStorage;
 use Symfony\Contracts\Cache\CacheInterface;
+use Zenstruck\Browser\Test\HasBrowser;
 use function Symfony\Component\String\u;
 
 class VisitLinksTest extends WebTestCase
 {
+    use HasBrowser;
     const URL_BASE='http://localhost';
     private array $visibleLinks = [];
     private KernelBrowser $client;
@@ -55,26 +57,26 @@ class VisitLinksTest extends WebTestCase
     /**
      * @dataProvider linksToVisit
      */
-    public function testAuth($username, $userClassName, $url, $expected): void
-    {
-        $this->assertTrue(true);
-        return;
-        static $users = [];
-        if ($username && $username != "") {
-            if (!array_key_exists($username, $users)) {
-                $users[$username] = $container->get('doctrine')->getRepository($userClassName)->findOneBy(['email' => $username]);
-            }
-
-            $user = $users[$username];
-            assert($user, "Invalid user $username, not in user database");
-            $client->loginUser($user);
-        }
-
-//        $client = static::createClient();
-        $this->client = $this->createAuthenticatedClient($username);
-        $this->client->request('GET', $url);
-        $this->assertResponseIsSuccessful(sprintf('The %s URL loads correctly for %s', $url, $username));
-    }
+//    public function testAuth($username, $userClassName, $url, $expected): void
+//    {
+//        $this->assertTrue(true);
+//        return;
+//        static $users = [];
+//        if ($username && $username != "") {
+//            if (!array_key_exists($username, $users)) {
+//                $users[$username] = $container->get('doctrine')->getRepository($userClassName)->findOneBy(['email' => $username]);
+//            }
+//
+//            $user = $users[$username];
+//            assert($user, "Invalid user $username, not in user database");
+//            $client->loginUser($user);
+//        }
+//
+////        $client = static::createClient();
+//        $this->client = $this->createAuthenticatedClient($username);
+//        $this->client->request('GET', $url);
+//        $this->assertResponseIsSuccessful(sprintf('The %s URL loads correctly for %s', $url, $username));
+//    }
 
     /**
      * @dataProvider linksToVisit
@@ -82,7 +84,9 @@ class VisitLinksTest extends WebTestCase
     public function testWithLogin(?string $username, ?string $userClassName, string $url, int $expected): void
     {
         static $users = [];
-        $client = static::createClient();
+
+        $browser = $this->browser();
+//        $client = static::createClient();
 
         if ($username && $username != "") {
             if (!array_key_exists($username, $users)) {
@@ -92,8 +96,20 @@ class VisitLinksTest extends WebTestCase
 
             $user = $users[$username];
             assert($user, "Invalid user $username, not in user database");
-            $client->loginUser($user);
+            $browser->actingAs($user);
+
+//            $client->loginUser($user);
         }
+        $content = $browser->visit($url)
+
+//        ->crawler() // Symfony\Component\DomCrawler\Crawler instance for the current response
+            ->content() // string - raw response body
+        ;
+//        dump($content);
+//        dd($browser);
+//        $browser->dd();
+        $browser->assertStatus($expected);
+        return;
 
 //        $client = static::createClient();
         $client->request('GET', $url);
@@ -180,6 +196,7 @@ class VisitLinksTest extends WebTestCase
                 $this->visibleLinks[$this->getKey($path)] = $info;
                 return;
             }
+
         assert($path, "missing path");
 
 //        $base = 'https://127.0.0.1:8000';
