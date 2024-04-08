@@ -4,20 +4,23 @@ namespace Survos\CrawlerBundle\Controller;
 
 use Survos\CrawlerBundle\Services\CrawlerService;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use Symfony\Component\DependencyInjection\Attribute\Autowire;
 use Symfony\Component\DependencyInjection\ParameterBag\ParameterBagInterface;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
 
 class CrawlerController extends AbstractController
 {
-    public function __construct(private ParameterBagInterface $bag) {
-
+    public function __construct(
+        #[Autowire('%kernel.project_dir%')] private readonly string $projectDir
+    ) {
     }
+
     #[Route(path: '/crawlerdata', name: 'survos_crawler_data', methods: ['GET'])]
     public function results(CrawlerService $crawlerService): Response
     {
         // hackish -- get the crawldata of the currently logged in user?
-        $filename = $this->bag->get('kernel.project_dir') . '/crawldata.json';
+        $filename = $this->projectDir . '/crawldata.json';
             if (!file_exists($filename)) {
                 throw $this->createNotFoundException("Run survos:crawl to create $filename");
             }

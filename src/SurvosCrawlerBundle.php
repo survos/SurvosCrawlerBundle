@@ -21,13 +21,13 @@ class SurvosCrawlerBundle extends AbstractBundle
     public function loadExtension(array $config, ContainerConfigurator $container, ContainerBuilder $builder): void
     {
 
-        $dir =
+        // if controller class extends AbstractController, the tags and injected services aren't needed.
         $builder->autowire(CrawlerController::class)
             ->setAutoconfigured(true)
             ->setPublic(true)
-            ->addTag('container.service_subscriber')
-            ->addTag('controller.service_arguments')
-            ->setArgument('$bag', new Reference('parameter_bag'))
+//            ->addTag('container.service_subscriber')
+//            ->addTag('controller.service_arguments')
+//            ->setArgument('$bag', new Reference('parameter_bag'))
         ;
 
         $builder->autowire(CrawlCommand::class)
