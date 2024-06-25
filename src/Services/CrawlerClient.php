@@ -25,13 +25,13 @@ class CrawlerClient extends KernelBrowser
     public function __construct(KernelInterface $kernel,
                                 TokenStorageInterface $tokenStorage,
                                 Security $security,
-                                SessionFactory $sessionStorageFactory,
+//                                SessionFactory $sessionStorageFactory,
                                 array $server = [], History $history = null, CookieJar $cookieJar = null)
     {
         parent::__construct($kernel, $server, $history, $cookieJar);
         $this->tokenStorage = $tokenStorage;
         $this->security = $security;
-        $this->sessionStorageFactory = $sessionStorageFactory;
+//        $this->sessionStorageFactory = $sessionStorageFactory;
     }
 
 
