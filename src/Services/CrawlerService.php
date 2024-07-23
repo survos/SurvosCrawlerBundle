@@ -402,7 +402,9 @@ class CrawlerService
     }
 
     private function createClient() {
-        $crawlerClient = new CrawlerClient($this->kernel, $this->tokenStorage, $this->security, $this->sessionStorageFactory);
+        $crawlerClient = new CrawlerClient($this->kernel, $this->tokenStorage, $this->security,
+//            $this->sessionStorageFactory
+        );
         return $crawlerClient;
     }
 
