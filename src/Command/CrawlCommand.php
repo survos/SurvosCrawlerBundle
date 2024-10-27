@@ -154,10 +154,17 @@ class CrawlCommand extends Command
             $loop = 0;
             while ($link = $crawlerService->getUnvisitedLink($username)) {
                 $loop++;
-                $io->info(sprintf("Considering %s as %s (from %s) | %s", $link->getPath(), $username, $link->getFoundOn(), $link->getRoute()));
+
+                $io->info(sprintf("%s%s as %s (from %s) | %s",
+                    $crawlerService->getBaseUrl(true),
+                    $link->getPath(),
+                    $username ?: 'visitor',
+                    $link->getFoundOn(),
+                    $link->getRoute()));
                 $crawlerService->scrape($link);
-                if ($link->getLinkStatus() <> 200) {
-                    $this->logger->warning(sprintf("%s %s (%s)", $link->getPath(), $link->getRoute(), $link->getLinkStatus()));
+                if ($link->getStatusCode() <> 200) {
+                    $this->logger->warning(sprintf("%s %s (%s)",
+                        $link->getPath(), $link->getRoute(), $link->getStatusCode()));
                 }
                 if (! $link->testable()) {
                     $io->info("Rejecting " . $link->getPath() . ' ' . $link->getRoute());

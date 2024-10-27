@@ -78,9 +78,9 @@ class CrawlerService
         return $this;
     }
 
-    public function getBaseUrl(): string
+    public function getBaseUrl($removeTrailingSlash=false): string
     {
-        return $this->baseUrl;
+        return $removeTrailingSlash ? trim($this->baseUrl, '/') :  $this->baseUrl;
     }
 
     public function getUserClass(): ?string
@@ -351,7 +351,7 @@ class CrawlerService
                 $this->logger->error("Invalid path: $urlPath from $path");
                 return;
             }
-                $this->logger->warning($urlPath);
+                $this->logger->info($urlPath);
                 $context = $this->router->getContext();
                 $matcher = new UrlMatcher($this->router->getRouteCollection(), $context);
                 $matcher = new TraceableUrlMatcher($this->router->getRouteCollection(), $context);
