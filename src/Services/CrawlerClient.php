@@ -21,12 +21,14 @@ class CrawlerClient extends KernelBrowser
 {
     private TokenStorageInterface $tokenStorage;
     protected Security $security;
-    protected SessionFactory $sessionStorageFactory;
+//    protected SessionFactory $sessionStorageFactory;
     public function __construct(KernelInterface $kernel,
                                 TokenStorageInterface $tokenStorage,
                                 Security $security,
-//                                SessionFactory $sessionStorageFactory,
-                                array $server = [], History $history = null, CookieJar $cookieJar = null)
+                                private SessionFactory $sessionStorageFactory,
+                                array $server = [],
+                                History $history = null,
+                                CookieJar $cookieJar = null)
     {
         parent::__construct($kernel, $server, $history, $cookieJar);
         $this->tokenStorage = $tokenStorage;
@@ -68,6 +70,7 @@ class CrawlerClient extends KernelBrowser
         $container = $this->getContainer();
 
         $request = new Request();
+        assert($this->sessionStorageFactory, "Missing sessionStorageFactory");
         $session = $this->sessionStorageFactory->createSession();
 
         // Set the session for the request

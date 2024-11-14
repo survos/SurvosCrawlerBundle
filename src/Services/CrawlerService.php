@@ -7,6 +7,7 @@ use Exception;
 use Symfony\Component\Console\Input\ArrayInput;
 use Symfony\Component\HttpFoundation\ChainRequestMatcher;
 use Symfony\Component\HttpFoundation\RequestMatcher;
+use Symfony\Component\HttpFoundation\Session\SessionFactory;
 use Symfony\Component\HttpKernel\KernelInterface;
 use Psr\Log\LoggerInterface;
 use Survos\CrawlerBundle\Model\Link;
@@ -49,7 +50,7 @@ class CrawlerService
         private KernelInterface $kernel,
         private TokenStorageInterface $tokenStorage,
         protected Security $security,
-        protected $sessionStorageFactory,
+        protected SessionFactory $sessionStorageFactory,
 
         ?Profiler $profiler = null,
         private array $linkList = [],
@@ -403,7 +404,7 @@ class CrawlerService
 
     private function createClient() {
         $crawlerClient = new CrawlerClient($this->kernel, $this->tokenStorage, $this->security,
-//            $this->sessionStorageFactory
+            $this->sessionStorageFactory
         );
         return $crawlerClient;
     }
