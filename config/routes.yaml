@@ -1,0 +1,5 @@
+survos_crawler:
+  type: attribute
+  resource:
+    path: '@SurvosCrawlerBundle/src/Controller/'
+    namespace: Survos\CrawlerBundle\Controller
