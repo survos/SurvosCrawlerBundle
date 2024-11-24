@@ -2,26 +2,36 @@
     "name": "survos/crawler-bundle",
     "description": "Provides a way to create tests that crawl a site",
     "license": "MIT",
-    "type": "symfony-bundle",
     "authors": [
         {
             "name": "Tac Tacelosky",
             "email": "tacman@gmail.com"
         }
     ],
+    "type": "symfony-bundle",
     "require": {
-        "php": "^8.2",
-        "symfony/config": "^6.4 || ^7.0",
-        "symfony/dependency-injection": "^6.4 || ^7.0",
-        "symfony/http-kernel": "^6.4 || ^7.0",
-        "symfony/stopwatch": "^6.4 || ^7.0",
-        "symfony/string": "^7.0",
-        "symfony/console": "^7.0"
+        "php": "^8.3",
+        "symfony/config": "^6.4 || ^7.1",
+        "symfony/dependency-injection": "^6.4 || ^7.1",
+        "symfony/http-kernel": "^6.4 || ^7.1",
+        "symfony/stopwatch": "^6.4 || ^7.1",
+        "symfony/string": "^6.4 || ^7.1",
+        "symfony/console": "^6.4 || ^7.1"
     },
     "require-dev": {
-        "phpstan/phpstan": "^1.10",
-        "phpunit/phpunit": "^11.0",
+        "phpstan/phpstan": "^2.0",
+        "phpunit/phpunit": "^11.4",
         "zenstruck/browser": "^1.8"
+    },
+    "autoload": {
+        "psr-4": {
+            "Survos\\CrawlerBundle\\": "src/"
+        }
+    },
+    "extra": {
+        "branch-alias": {
+            "dev-master": "2.0-dev"
+        }
     },
     "conflict": {
         "survos/api-grid-bundle": "<1.2.57",
@@ -45,15 +55,5 @@
         "survos/tree-bundle": "<1.2.57",
         "survos/wiki-bundle": "<1.2.57",
         "survos/workflow-helper-bundle": "<1.2.57"
-    },
-    "autoload": {
-        "psr-4": {
-            "Survos\\CrawlerBundle\\": "src/"
-        }
-    },
-    "extra": {
-        "branch-alias": {
-            "dev-master": "2.0-dev"
-        }
     }
 }
