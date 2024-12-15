@@ -27,8 +27,8 @@ class CrawlerClient extends KernelBrowser
                                 Security $security,
                                 private SessionFactory $sessionStorageFactory,
                                 array $server = [],
-                                History $history = null,
-                                CookieJar $cookieJar = null)
+                                ?History $history = null,
+                                ?CookieJar $cookieJar = null)
     {
         parent::__construct($kernel, $server, $history, $cookieJar);
         $this->tokenStorage = $tokenStorage;

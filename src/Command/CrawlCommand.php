@@ -39,7 +39,7 @@ class CrawlCommand extends Command
         private ParameterBagInterface $bag,
         private CrawlerService $crawlerService,
         private RouterInterface $router,
-        string $name = null
+        ?string $name = null
     ) {
         parent::__construct($name);
     }
