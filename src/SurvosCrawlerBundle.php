@@ -57,6 +57,9 @@ class SurvosCrawlerBundle extends AbstractBundle
             ->setArgument('$routesToIgnore', $config['routes_to_ignore'])
             ->setArgument('$pathsToIgnore', $config['paths_to_ignore'])
             ->setArgument('$sessionStorageFactory',new Reference('session.factory'))
+            ->setAutoconfigured(true)
+            ->setPublic(true)
+            ->setAutowired(true);
         ;
         $container->services()->alias(CrawlerService::class, $crawler_service_id);
 

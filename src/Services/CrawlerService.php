@@ -48,10 +48,10 @@ class CrawlerService
         //        private HttpClientInterface $httpClient,
         private LoggerInterface $logger,
         private KernelInterface $kernel,
-        private TokenStorageInterface $tokenStorage,
         protected Security $security,
         protected SessionFactory $sessionStorageFactory,
 
+        private ?TokenStorageInterface $tokenStorage=null,
         ?Profiler $profiler = null,
         private array $linkList = [],
         private ?string $username = null,
