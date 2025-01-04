@@ -2,6 +2,7 @@
 
 namespace Survos\CrawlerBundle\Services;
 
+use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\Persistence\ManagerRegistry;
 use Exception;
 use Symfony\Component\Console\Input\ArrayInput;
@@ -41,7 +42,6 @@ class CrawlerService
         private string $plaintextPassword,
         private string $initialPath,
         /* @todo: User Provider */
-        private ManagerRegistry $managerRegistry,
         //        private CrawlerClient       $client,
         private RouterInterface $router,
         //        private Client $gouteClient,
@@ -50,7 +50,7 @@ class CrawlerService
         private KernelInterface $kernel,
         protected Security $security,
         protected SessionFactory $sessionStorageFactory,
-
+        private ?ManagerRegistry $managerRegistry=null,
         private ?TokenStorageInterface $tokenStorage=null,
         ?Profiler $profiler = null,
         private array $linkList = [],
@@ -105,6 +105,7 @@ class CrawlerService
         if (empty($this->userClass) || !class_exists($this->userClass)) {
             return null;
         }
+
         $user = $this->managerRegistry->getRepository($this->userClass)->findOneBy([
             'email' => $username,
         ]);

@@ -4,8 +4,6 @@ namespace Survos\CrawlerBundle\Command;
 
 //use App\Entity\User;
 use App\Kernel;
-use Doctrine\Bundle\DoctrineBundle\Registry;
-use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\Persistence\ManagerRegistry;
 use Psr\Log\LoggerInterface;
 use Survos\CrawlerBundle\Model\Link;
@@ -34,7 +32,6 @@ use Symfony\Contracts\HttpClient\HttpClientInterface;
 class CrawlCommand extends Command
 {
     public function __construct(
-        private ManagerRegistry $registry,
         private LoggerInterface $logger,
         private ParameterBagInterface $bag,
         private CrawlerService $crawlerService,
@@ -370,12 +367,8 @@ At most, <comment>%s</comment> pages will be crawled.', $this->domain, $this->st
         });
 
         // @todo: this assumes a local user, it should be a proper login to the endpoint
-        $userClass = $this->crawlerService->getUserClass();
-        $entityManager = $this->registry->getManagerForClass($userClass);
         // code? Username? S.b. configurable.
-        if (! $user = $entityManager->getRepository($userClass)->findOneBy([
-            'code' => $this->username,
-        ])) {
+        if (! $user =  $this->crawlerService->getUser($this->username)) {
             throw new \Exception("Unable to authenticate member " . $this->username);
         }
         // $token = new UsernamePasswordToken($login, $password, $firewall);

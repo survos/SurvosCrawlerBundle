@@ -7,6 +7,7 @@ use Survos\CrawlerBundle\Controller\CrawlerController;
 use Survos\CrawlerBundle\Services\CrawlerService;
 use Symfony\Component\Config\Definition\Configurator\DefinitionConfigurator;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
+use Symfony\Component\DependencyInjection\ContainerInterface;
 use Symfony\Component\DependencyInjection\Loader\Configurator\ContainerConfigurator;
 use Symfony\Component\DependencyInjection\Reference;
 use Symfony\Component\HttpKernel\Bundle\AbstractBundle;
@@ -31,17 +32,19 @@ class SurvosCrawlerBundle extends AbstractBundle
         ;
 
         $builder->autowire(CrawlCommand::class)
-//            ->setArgument('$registry', new Reference('doctrine'))
             ->setAutoconfigured(true)
             ->setPublic(true)
             ->setAutowired(true)
-            ->setArgument('$logger', new Reference('logger'))
+//            ->setArgument('$logger', new Reference('logger'))
             ->addTag('console.command');;
 
         $crawler_service_id = 'survos.crawler_service';
         $builder
             ->autowire($crawler_service_id, CrawlerService::class)
             ->setPublic(true)
+//            ->setArgument('$entityManager', new Reference('doctrine.orm'))
+            ->setAutowired(true)
+            ->setArgument('$managerRegistry', new Reference('doctrine.registry', ContainerInterface::NULL_ON_INVALID_REFERENCE))
             ->setArgument('$config', $config)
             ->setArgument('$userClass', $config['user_class'])
             ->setArgument('$loginPath', $config['login_path'])
