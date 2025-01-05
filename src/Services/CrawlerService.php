@@ -20,6 +20,7 @@ use Symfony\Component\Routing\Exception\ResourceNotFoundException;
 use Symfony\Component\Routing\Matcher\TraceableUrlMatcher;
 use Symfony\Component\Routing\Matcher\UrlMatcher;
 use Symfony\Component\Routing\RouterInterface;
+use Symfony\Component\Security\Core\Exception\UserNotFoundException;
 use Symfony\Component\Security\Core\User\UserInterface;
 use Symfony\Contracts\HttpClient\HttpClientInterface;
 use Symfony\Component\DependencyInjection\Reference;
@@ -50,15 +51,17 @@ class CrawlerService
         private KernelInterface $kernel,
         protected Security $security,
         protected SessionFactory $sessionStorageFactory,
-        private ?ManagerRegistry $managerRegistry=null,
+        private ?ManagerRegistry       $managerRegistry=null,
         private ?TokenStorageInterface $tokenStorage=null,
-        ?Profiler $profiler = null,
-        private array $linkList = [],
-        private ?string $username = null,
-        private array $users = [],
-        private int $maxDepth = 1,
-        private array $routesToIgnore = [],
-        private array $pathsToIgnore = [],
+        ?Profiler                      $profiler = null,
+        private array                  $linkList = [],
+        private ?string                $username = null,
+        private array                  $users = [],
+        private int                    $maxDepth = 1,
+        private int                    $maxVisits = 3,
+        private array                  $routesToIgnore = [],
+        private array                  $pathsToIgnore = [],
+        private array                  $routeVisits = [],
 
     ) {
         //        $this->baseUrl = 'https://127.0.0.1:8001';
@@ -66,6 +69,11 @@ class CrawlerService
             // if it exists, disable the profiler for this particular controller action
             $profiler->disable();
         }
+    }
+
+    public function getRouteVisits(): array
+    {
+        return $this->routeVisits;
     }
 
     public function getConfig(): array
@@ -109,10 +117,10 @@ class CrawlerService
         $user = $this->managerRegistry->getRepository($this->userClass)->findOneBy([
             'email' => $username,
         ]);
-        return $user;
-
-        assert($user, "Invalid user $username, not in user database");
-
+        if ($username && !$user) {
+            dd($username);
+            throw new UserNotFoundException();
+        }
         return $user;
     }
 
@@ -181,8 +189,6 @@ class CrawlerService
             $clients[$username] = $createClient;
         }
         $this->crawlerClient = $clients[$username];
-        //        $this->router = $container->get('router');
-        //        $this->cache = $container->get('cache.app');
     }
 
     public function checkIfCrawlerClient()
@@ -219,6 +225,17 @@ class CrawlerService
         }
 
         $this->setRoute($link);
+        if  ($link->getVisits() >= $this->maxVisits) {
+            return $link;
+        }
+        $routeName = $link->getRoute();
+        if (!array_key_exists($routeName, $this->routeVisits)) {
+            $this->routeVisits[$routeName] = 0;
+        }
+        $this->routeVisits[$routeName]++;
+        if  ($this->routeVisits[$routeName] >= $this->maxVisits) {
+            return $link;
+        }
 
         if ($this->isIgnored($link->getPath())) {
             $link->setLinkStatus($link::STATUS_IGNORED);
@@ -260,8 +277,8 @@ class CrawlerService
             //echo $response->getContent();exit;
             // @todo: what should we do here?
 //            dump($response->getContent());
-            $this->logger->error("$url " . $status);
-            //            dd($response->getStatusCode(), $this->baseUrl . $link->getPath());
+            $this->logger->error("$url " . $status . " found on \n" . $this->baseUrl . $link->getFoundOn());
+            dd($response->getStatusCode(), $this->baseUrl . $link->getPath(), $link->getFoundOn());
             $html = ''; // false;
         } else {
             $html = $response->getContent();
@@ -380,17 +397,11 @@ class CrawlerService
             if ($routeName) {
                 $route = $this->router->getRouteCollection()->get($routeName);
                 $link->setRoute($routeName);
-//                $controller = $route['_controller'];
+                $link->incVisits();
+ //                $controller = $route['_controller'];
                 //                $reflection = new \ReflectionMethod($controller);
 //                foreach (['_route', '_controller'] as $x) {
 //                    unset($route[$x]);
-//                }
-                // @todo: setRp!!
-                if ($routeName == 'event_show') {
-                    //dd($route);
-                }
-//                if (count($route)) {
-//                    $link->setRp($route);
 //                }
             }
         try {

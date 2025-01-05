@@ -151,13 +151,17 @@ class CrawlCommand extends Command
             $loop = 0;
             while ($link = $crawlerService->getUnvisitedLink($username)) {
                 $loop++;
+                $link->incVisits();
 
-                $io->info(sprintf("%s%s as %s (from %s) | %s",
+                $io->info(sprintf("%s/%d %s%s as %s (from %s)",
+                    $link->getRoute(),
+                    $link->getVisits(),
                     $crawlerService->getBaseUrl(true),
                     $link->getPath(),
                     $username ?: 'visitor',
-                    $link->getFoundOn(),
-                    $link->getRoute()));
+                    $link->getFoundOn()
+                ));
+
                 $crawlerService->scrape($link);
                 if ($link->getStatusCode() <> 200) {
                     $this->logger->warning(sprintf("%s %s (%s)",
@@ -189,6 +193,13 @@ class CrawlCommand extends Command
         file_put_contents($outputFilename, json_encode($linksToCrawl, JSON_UNESCAPED_LINE_TERMINATORS + JSON_PRETTY_PRINT + JSON_UNESCAPED_SLASHES));
         $io->success(sprintf("File $outputFilename written with %d usernames", count($linksToCrawl)));
 
+        $table = new Table($output);
+        $table->setHeaders(['route','visits']);
+        foreach ($crawlerService->getRouteVisits() as $routeName=>$visits) {
+            $table->addRow([$routeName, $visits]);
+        }
+        $table->render();
+
         return self::SUCCESS;
 
         // user input
@@ -209,8 +220,9 @@ class CrawlCommand extends Command
         $this->domain = parse_url($this->startingLink, PHP_URL_HOST);
 
         $kernel = $this->createKernel();
-        $client = $this->httpClient;
 
+
+        $client = $this->httpClient;
         $crawler = $client->request('GET', $this->startingLink);
 
         dump($this->startingLink);

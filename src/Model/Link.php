@@ -25,13 +25,25 @@ class Link
         private ?float $duration = null,
         public ?int $statusCode = null,
         public ?string $foundOn = null,
-        public ?int $memory = null
+        public ?int $memory = null,
+        private int $visits = 0
     ) {
     }
 
     public function getMemory(): ?int
     {
         return $this->memory;
+    }
+
+    public function incVisits(): self
+    {
+        $this->visits++;
+        return $this;
+    }
+
+    public function getVisits(): int
+    {
+        return $this->visits;
     }
 
     public function setMemory(): Link

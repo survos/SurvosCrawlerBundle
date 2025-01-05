@@ -44,7 +44,9 @@ class SurvosCrawlerBundle extends AbstractBundle
             ->setPublic(true)
 //            ->setArgument('$entityManager', new Reference('doctrine.orm'))
             ->setAutowired(true)
-            ->setArgument('$managerRegistry', new Reference('doctrine.registry', ContainerInterface::NULL_ON_INVALID_REFERENCE))
+            // arguably not required, since it can run without checking for users
+            ->setArgument('$managerRegistry', new Reference('doctrine', ContainerInterface::NULL_ON_INVALID_REFERENCE))
+//            ->setArgument('$managerRegistry', new Reference('doctrine'))
             ->setArgument('$config', $config)
             ->setArgument('$userClass', $config['user_class'])
             ->setArgument('$loginPath', $config['login_path'])

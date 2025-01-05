@@ -19,7 +19,8 @@
         "symfony/console": "^6.4 || ^7.1",
         "symfony/security-bundle": "^6.4 || ^7.1",
         "symfony/http-client-contracts": "^3.5",
-        "doctrine/orm": "^3.3 | ^4.0"
+        "doctrine/orm": "^3.3",
+        "doctrine/doctrine-bundle": "^2.13"
     },
     "require-dev": {
         "phpstan/phpstan": "^2.0",
