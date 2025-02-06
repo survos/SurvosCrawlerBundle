@@ -153,6 +153,13 @@ class CrawlCommand extends Command
                 $loop++;
                 $link->incVisits();
 
+                // we need to configure ignored patterns
+                if (preg_match('/javascript/', $link->getPath())) {
+                    $io->info("Rejecting " . $link->getPath() . ' ' . $link->getRoute());
+                    dd($link);
+                    continue;
+                }
+
                 $io->info(sprintf("%s/%d %s%s as %s (from %s)",
                     $link->getRoute(),
                     $link->getVisits(),
