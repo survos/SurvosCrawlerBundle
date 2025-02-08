@@ -13,31 +13,30 @@ composer req survos/crawler-bundle
 # Working example (without API Platform)
 
 ```bash
-symfony new crawler-7 --webapp --version=next --php=8.2 && cd crawler-7
+symfony new smoketest-demo --webapp && cd smoketest-demo
 composer config extra.symfony.allow-contrib true
+composer require --dev orm-fixtures pierstoval/smoke-testing 
 echo "DATABASE_URL=sqlite:///%kernel.project_dir%/var/data.db" > .env.local
-composer update
-composer require form validator security-csrf      
-composer require orm-fixtures doctrine/doctrine-fixtures-bundle --dev
-echo "firstName,string,16,yes," | sed "s/,/\n/g"  | bin/console make:entity Official
-echo "lastName,string,32,no," | sed "s/,/\n/g"  | bin/console make:entity Official
-echo "officialName,string,48,no," | sed "s/,/\n/g"  | bin/console make:entity Official
-echo "birthday,date_immutable,yes," | sed "s/,/\n/g"  | bin/console make:entity Official
-echo "gender,string,1,yes," | sed "s/,/\n/g"  | bin/console make:entity Official
+echo "DATABASE_URL=sqlite:///%kernel.project_dir%/var/data.db" > .env.test
+echo "title,string,80,no," | sed "s/,/\n/g"  | bin/console make:entity Product
+echo "description,text,yes," | sed "s/,/\n/g"  | bin/console make:entity Product
 bin/console doctrine:schema:update --force --complete
 
-# was bin/console make:crud Official -q
-echo ",," | sed "s/,/\n/g"  | bin/console make:crud Official
-sed -i "s|'app_app'|'app_homepage'|" src/Controller/OfficialController.php
+echo ",," | sed "s/,/\n/g"  | bin/console make:crud Product --with-tests 
+
+sed -i "s|'app_app'|'app_homepage'|" src/Controller/ProductController.php --with-tests
+
 
 bin/console make:controller AppController
 sed -i "s|Route('/app'|Route('/'|" src/Controller/AppController.php
 sed -i "s|'app_app'|'app_homepage'|" src/Controller/AppController.php
+sed -i "s|</php>|<server name=\"SMOKE_TESTING_ROUTES_METHODS\" value=\"off\" />\n</php>|" phpunit.xml.dist
+
 cat > templates/app/index.html.twig <<END
 {% extends 'base.html.twig' %}
 {% block body %}
     <h1>A simple CRUD</h1>
-    <a href="{{ path('app_official_index') }}">Listing</a>
+    <a href="{{ path('app_product_index') }}">Listing</a>
 {% endblock %}
 END
 
@@ -46,7 +45,7 @@ cat > src/DataFixtures/AppFixtures.php <<'END'
 
 namespace App\DataFixtures;
 
-use App\Entity\Official;
+use App\Entity\Product;
 use Doctrine\Bundle\FixturesBundle\Fixture;
 use Doctrine\Persistence\ObjectManager;
 
@@ -54,25 +53,38 @@ class AppFixtures extends Fixture
 {
     public function load(ObjectManager $manager): void
     {
-        $url = 'https://theunitedstates.io/congress-legislators/legislators-current.json';
+        $url = 'https://dummyjson.com/products';
         $json = file_get_contents($url);
-        foreach (json_decode($json) as $record) {
-            $name = $record->name;
-            $bio = $record->bio;
-            $official = (new Official())
-                ->setBirthday(new \DateTimeImmutable($bio->birthday))
-                ->setGender($bio->gender)
-                ->setFirstName($name->first)
-                ->setLastName($name->last)
-                ->setOfficialName($name->official_full ?? "$name->first $name->last");
-            $manager->persist($official);
+        foreach (json_decode($json)->products as $record) {
+           $product = (new Product)
+              ->setTitle($record->title)
+              ->setDescription($record->description)
+              ;
+            $manager->persist($product);
         }
     $manager->flush();
     }
 }
 END
 
+# setup the test
+
+cat > tests/SmokeTest.php <<END
+<?php
+
+namespace App\Tests;
+
+use Pierstoval\SmokeTesting\SmokeTestStaticRoutes;
+
+class SmokeTest extends SmokeTestStaticRoutes
+{
+    // That's all!
+}
+END
+
 bin/console d:fixtures:load -n
+symfony server:start -d
+symfony open:local
 
 composer require stenope/stenope
 bin/console -e prod cache:clear
