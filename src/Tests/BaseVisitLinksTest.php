@@ -3,6 +3,8 @@
 namespace Survos\CrawlerBundle\Tests;
 
 use App\Entity\User;
+use PHPUnit\Framework\Attributes\DataProvider;
+use PHPUnit\Framework\Attributes\TestDox;
 use Psr\Log\LoggerInterface;
 use Symfony\Bundle\FrameworkBundle\KernelBrowser;
 use Symfony\Bundle\FrameworkBundle\Test\WebTestCase;
@@ -20,7 +22,7 @@ use Symfony\Contracts\Cache\CacheInterface;
 use Zenstruck\Browser\Test\HasBrowser;
 use function Symfony\Component\String\u;
 
-class VisitLinksTest extends WebTestCase
+class BaseVisitLinksTest extends WebTestCase
 {
     use HasBrowser;
     const URL_BASE='http://localhost';
@@ -54,34 +56,9 @@ class VisitLinksTest extends WebTestCase
         return $client;
     }
 
-    /**
-     * @dataProvider linksToVisit
-     */
-//    public function testAuth($username, $userClassName, $url, $expected): void
-//    {
-//        $this->assertTrue(true);
-//        return;
-//        static $users = [];
-//        if ($username && $username != "") {
-//            if (!array_key_exists($username, $users)) {
-//                $users[$username] = $container->get('doctrine')->getRepository($userClassName)->findOneBy(['email' => $username]);
-//            }
-//
-//            $user = $users[$username];
-//            assert($user, "Invalid user $username, not in user database");
-//            $client->loginUser($user);
-//        }
-//
-////        $client = static::createClient();
-//        $this->client = $this->createAuthenticatedClient($username);
-//        $this->client->request('GET', $url);
-//        $this->assertResponseIsSuccessful(sprintf('The %s URL loads correctly for %s', $url, $username));
-//    }
-
-    /**
-     * @dataProvider linksToVisit
-     */
-    public function testWithLogin(?string $username, ?string $userClassName, string $url, int $expected): void
+    #[DataProvider('linksToVisit')]
+    #[TestDox('$username $url should return $expected')]
+    public function testWithLogin(?string $username, ?string $userClassName, string $url, int|string|null $expected): void
     {
         static $users = [];
 
@@ -120,7 +97,7 @@ class VisitLinksTest extends WebTestCase
 //        $this->assertResponseStatusCodeSame($expected, sprintf('The %s@%s expected %d', $username, $url, $expected));
     }
 
-    public function linksToVisit()
+    static public function linksToVisit()
     {
 //        $text = [
 //            ['admin','/', 200],
@@ -131,19 +108,23 @@ class VisitLinksTest extends WebTestCase
 //        ];
 
         $x = [];
-        $kernel = $this->getContainer()->get('kernel');
-        $crawldataFilename = $kernel->getProjectDir(). '/crawldata.json';
+
+        self::bootKernel();
+
+        /** @var RouterInterface $router */
+//        $router = self::getContainer()->get(RouterInterface::class);
+        $kernel = self::getContainer()->get('kernel');
+        $crawldataFilename = $kernel->getProjectDir(). '/tests/crawldata.json';
         assert(file_exists($crawldataFilename));
         $crawldata = json_decode(file_get_contents($crawldataFilename));
 
         foreach ($crawldata as $username => $linksToCrawl) {
             $array = explode("|",$username);
             foreach ($linksToCrawl as $path=>$info) {
-                // yield?
-                $x[$username . '@' . $info->path] = [$array[0],$array[1], $info->path, 200];
+                yield $x[$username . '@' . $info->path] = [$array[0],$array[1], $info->path, 200];
             }
         }
-        return $x;
+//        return $x;
     }
 
     private function getKey($path): string

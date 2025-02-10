@@ -3,6 +3,7 @@
 namespace Survos\CrawlerBundle;
 
 use Survos\CrawlerBundle\Command\CrawlCommand;
+use Survos\CrawlerBundle\Command\GenerateTestsCommand;
 use Survos\CrawlerBundle\Controller\CrawlerController;
 use Survos\CrawlerBundle\Services\CrawlerService;
 use Symfony\Component\Config\Definition\Configurator\DefinitionConfigurator;
@@ -31,12 +32,14 @@ class SurvosCrawlerBundle extends AbstractBundle
 //            ->setArgument('$bag', new Reference('parameter_bag'))
         ;
 
-        $builder->autowire(CrawlCommand::class)
-            ->setAutoconfigured(true)
-            ->setPublic(true)
-            ->setAutowired(true)
-//            ->setArgument('$logger', new Reference('logger'))
-            ->addTag('console.command');;
+        foreach ([CrawlCommand::class, GenerateTestsCommand::class] as $commandClass) {
+            $builder->autowire($commandClass)
+                ->setAutoconfigured(true)
+                ->setPublic(true)
+                ->setAutowired(true)
+                ->addTag('console.command');;
+        }
+
 
         $crawler_service_id = 'survos.crawler_service';
         $builder

@@ -192,7 +192,7 @@ class CrawlCommand extends Command
         }
         $table->render();
 
-        $outputFilename = $this->bag->get('kernel.project_dir') . '/crawldata.json';
+        $outputFilename = $this->bag->get('kernel.project_dir') . '/tests/crawldata.json';
         //        foreach ($crawlerService->getEntireLinkList() as $user=>$userLinks) {
         //            $testableLink =
         //        }

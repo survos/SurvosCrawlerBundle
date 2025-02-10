@@ -107,7 +107,7 @@ survos_crawler:
 bin/console survos:crawl
 ```
 
-Note that the first time this runs, it will create a VisitLinksTest.php in the tests directory, so that phpunit works.  
+Note that the first time this runs, it will create a BaseVisitLinksTest.php in the tests directory, so that phpunit works.  
 
 The command visits every link and stores the results in crawldata.json. This is then used by the tests to make sure they're right.
 

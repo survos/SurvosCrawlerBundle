@@ -237,7 +237,11 @@ class CrawlerService
             return $link;
         }
 
-        if ($this->isIgnored($link->getPath())) {
+        if ($this->isIgnoredPath($link->getPath())) {
+            $link->setLinkStatus($link::STATUS_IGNORED);
+            return $link;
+        }
+        if ($this->isIgnoredRoute($link->getRoute())) {
             $link->setLinkStatus($link::STATUS_IGNORED);
             return $link;
         }
@@ -421,7 +425,7 @@ class CrawlerService
         return $crawlerClient;
     }
 
-    private function isIgnored($path)
+    private function isIgnoredPath($path)
     {
         foreach ($this->routesToIgnore as $keyword) {
             if (trim($path, '/') == "") {
@@ -433,6 +437,14 @@ class CrawlerService
             }
         }
 
+        return false;
+    }
+
+    private function isIgnoredRoute($route)
+    {
+        if (in_array($route, $this->routesToIgnore)) {
+            return true;
+        }
         return false;
     }
 }
