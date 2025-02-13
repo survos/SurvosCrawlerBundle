@@ -82,6 +82,7 @@ class BaseVisitLinksTest extends WebTestCase
 //        ->crawler() // Symfony\Component\DomCrawler\Crawler instance for the current response
             ->content() // string - raw response body
         ;
+//        dd($content);
 //        dump($content);
 //        dd($browser);
 //        $browser->dd();
@@ -93,6 +94,7 @@ class BaseVisitLinksTest extends WebTestCase
         $reponse = $client->getResponse();
         //dd(substr($reponse->getContent(),0,1024));
         $this->assertEquals($expected, $reponse->getStatusCode(), sprintf('The %s@%s expected %d', $username, $url, $expected));
+        dd($reponse->getContent(), $reponse->getStatusCode());
 
 //        $this->assertResponseStatusCodeSame($expected, sprintf('The %s@%s expected %d', $username, $url, $expected));
     }
