@@ -20,7 +20,7 @@ class CrawlerController extends AbstractController
     public function results(CrawlerService $crawlerService): Response
     {
         // hackish -- get the crawldata of the currently logged in user?
-        $filename = $this->projectDir . '/crawldata.json';
+        $filename = $this->projectDir . '/tests/crawldata.json';
             if (!file_exists($filename)) {
                 throw $this->createNotFoundException("Run survos:crawl to create $filename");
             }

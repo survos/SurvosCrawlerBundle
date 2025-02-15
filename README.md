@@ -69,7 +69,7 @@ END
 
 # setup the test
 
-cat > tests/SmokeTest.php <<END
+cat > tests/SmokeTest.php <<'END'
 <?php
 
 namespace App\Tests;

@@ -65,7 +65,7 @@ final class GenerateTestsCommand extends Command
             }
 
 // create new classes in the namespace
-            $className = 'CrawlAs' . ($user ? u($user)->before('@')->toString() : 'Visitor') . 'Test';
+            $className = sprintf('CrawlAs%sTest',  ucfirst($user ? u($user)->before('@')->toString() : 'Visitor'));
             $className = str_replace('.', '', $className);
             $class = $namespace->addClass($className);
             $class->setExtends(BaseVisitLinksTest::class);
@@ -73,7 +73,6 @@ final class GenerateTestsCommand extends Command
 
             $method = $class->addMethod('testRoute');
             $method->setReturnType('void');
-//        #[TestDox('/$method $url ($route)')]
             $method->addAttribute(TestDox::class, [
                 '/$method $url ($route)'
             ]);

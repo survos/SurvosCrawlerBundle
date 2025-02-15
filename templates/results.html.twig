@@ -1,18 +1,24 @@
 {% extends "base.html.twig" %}
 
-{% block stylesheets %}
+{#{% block stylesheets %}#}
+{#    {{ parent() }}#}
+{#    #}{#    <link href="https://cdn.jsdelivr.net/npm/simple-datatables@latest/dist/style.css" rel="stylesheet" type="text/css"> #}
+{#    #}{#    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/simple-datatables@8.0.0/dist/column_filter.min.css"> #}
+
+{#    <link rel="stylesheet" href="https://cdn.datatables.net/1.13.7/css/jquery.dataTables.min.css">#}
+{#    <link rel="stylesheet" href="https://cdn.datatables.net/searchpanes/2.2.0/css/searchPanes.dataTables.min.css">#}
+{#    <link rel="stylesheet" href="https://cdn.datatables.net/select/1.7.0/css/select.dataTables.min.css">#}
+
+{#{% endblock %}#}
+
+{% block XXjavascripts %}
     {{ parent() }}
-    {#    <link href="https://cdn.jsdelivr.net/npm/simple-datatables@latest/dist/style.css" rel="stylesheet" type="text/css"> #}
-    {#    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/simple-datatables@8.0.0/dist/column_filter.min.css"> #}
 
-    <link rel="stylesheet" href="https://cdn.datatables.net/1.13.7/css/jquery.dataTables.min.css">
-    <link rel="stylesheet" href="https://cdn.datatables.net/searchpanes/2.2.0/css/searchPanes.dataTables.min.css">
-    <link rel="stylesheet" href="https://cdn.datatables.net/select/1.7.0/css/select.dataTables.min.css">
+    {{ dump(crawldata) }}
+    {% for u,data in crawldata %}
 
-{% endblock %}
-
-{% block javascripts %}
-    {{ parent() }}
+    {% endfor %}
+    {{ component('simple_datatables') }}
 
     <script type="module">
         import bootstrap from 'https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/+esm'
@@ -62,6 +68,29 @@
     #}
 {% endblock %}
 {% block body %}
+
+    <nav>
+        <ul>
+            <li><strong>Acme Corp</strong></li>
+        </ul>
+
+        {{ dump(tableData[0]) }}
+        <ul>
+                <li><a href="#">{{ u }}</a></li>
+            <li><a href="#">Services</a></li>
+            <li><a href="#">Products</a></li>
+        </ul>
+    </nav>
+    {% set columns = [
+        'path',
+        'route',
+        'depth'
+    ] %}
+    <twig:simple_datatables :data="tableData" :columns="tableData[0]|keys">
+
+
+    </twig:simple_datatables>
+
 
     <div class="dtsp-verticalContainer row">
         <div class="dtsp-verticalPanes col-3"></div>
