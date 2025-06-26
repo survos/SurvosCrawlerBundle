@@ -14,7 +14,6 @@
 {% block XXjavascripts %}
     {{ parent() }}
 
-    {{ dump(crawldata) }}
     {% for u,data in crawldata %}
 
     {% endfor %}
@@ -69,23 +68,22 @@
 {% endblock %}
 {% block body %}
 
-    <nav>
-        <ul>
-            <li><strong>Acme Corp</strong></li>
-        </ul>
-
-        {{ dump(tableData[0]) }}
-        <ul>
-                <li><a href="#">{{ u }}</a></li>
-            <li><a href="#">Services</a></li>
-            <li><a href="#">Products</a></li>
-        </ul>
-    </nav>
+    {# if picocss, not tabler... #}
+{#    <nav>#}
+{#        <ul>#}
+{#            <li><strong>Acme Corp</strong></li>#}
+{#        </ul>#}
+{#        <ul>#}
+{#            <li><a href="#">{{ u|default('#u') }}</a></li>#}
+{#            <li><a href="#">Services</a></li>#}
+{#            <li><a href="#">Products</a></li>#}
+{#        </ul>#}
+{#    </nav>#}
     {% set columns = [
         'path',
         'route',
         'depth'
-    ] %}
+    ] %}su
     <twig:simple_datatables :data="tableData" :columns="tableData[0]|keys">
 
 

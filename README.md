@@ -4,11 +4,30 @@ One of the most basic ways to test a website is to simply go to the starting pag
 
 Then repeat the process, but logged in as different users (e.g. as an administrator).
 
-That's what this bundle does.  Combine with code coverage, it's a fast and easy way to test.  
+That's what this bundle does.  Combine with code coverage, it's a fast and easy way to test.  This can also be run in --dev
+
+@todo: check out https://github.com/mvdbos/php-spider
 
 ```bash
 composer req survos/crawler-bundle
+# configure the users in packages/survos_crawler.yaml
+bin/console survos:crawl
 ```
+
+These are the steps
+
+* Crawl the site and create a list of all the routes and paths visited by each user (slow)
+* Generate a phpunit test with those routes
+* Run the phpunit test (very fast)
+* Check coverage with the test.
+
+```bash
+c d:sc:update --env=test --force
+
+
+bin/console survos:crawl --env=test
+```
+
 
 # Working example (without API Platform)
 

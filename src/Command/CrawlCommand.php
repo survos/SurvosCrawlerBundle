@@ -7,6 +7,7 @@ use App\Kernel;
 use Doctrine\Persistence\ManagerRegistry;
 use Psr\Log\LoggerInterface;
 use Survos\CrawlerBundle\Model\Link;
+use Survos\CrawlerBundle\RoutesExtractor;
 use Survos\CrawlerBundle\Services\CrawlerService;
 use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Command\Command;
@@ -23,6 +24,7 @@ use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\HttpKernel\Profiler\Profiler;
 use Symfony\Component\Routing\RouterInterface;
 use Symfony\Component\Security\Core\Authentication\Token\UsernamePasswordToken;
+use Symfony\Component\Security\Core\Exception\UserNotFoundException;
 use Symfony\Component\Stopwatch\Stopwatch;
 use Symfony\Contracts\HttpClient\HttpClientInterface;
 
@@ -119,6 +121,7 @@ class CrawlCommand extends Command
      */
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
+        
         $this->locale = $input->getOption('locale');
 
         $io = new SymfonyStyle($input, $output);
@@ -134,17 +137,46 @@ class CrawlCommand extends Command
 
         $crawlerService->resetLinkList();
 
+        $routesToIgnore = $this->crawlerService->getRoutesToIgnore();
+       
         // start with null, so that it is logged out.  Otherwise, it gets the last user!  BUG
         foreach ([null, ...$usernames] as $username) {
             //        foreach ($usernames as $user) {
-            if ($user = $this->crawlerService->getUser($username)) {
-                $username = $user->getUserIdentifier(); //assert that they're the same?
-                $crawlerService->authenticateClient($user);
+            try {
+                if ($user = $this->crawlerService->getUser($username)) {
+                    $username = $user->getUserIdentifier(); //assert that they're the same?
+                    $crawlerService->authenticateClient($user);
+                }
+            } catch (UserNotFoundException $e) {
+                $io->error(sprintf("User %s not found", $username));
+            } catch (\Exception $e) {
+                dd($e->getMessage(), $e->getTraceAsString(), $e->getPrevious());
+            }
+            if ($username && !$user) {
+                $io->error(sprintf("User %s not found", $username));
+                return Command::FAILURE;
             }
             $this->crawlerService->checkIfCrawlerClient();
             $io->info(sprintf("Crawling %s as %s", $crawlerService->getInitialPath(), $username ?: 'Visitor'));
 
+            $routes = RoutesExtractor::extractRoutesFromRouter($this->router);
+
+            foreach ($routes as $route) {
+                if (in_array($route["routeName"], $routesToIgnore)) {
+                    continue;
+                }
+                $link = $crawlerService->addLink($username, $route["routePath"]);
+            }
+
+            $staticLinks = [];
+            foreach ($staticLinks as $link) {
+                $link = $crawlerService->addLink($username, $link);
+            }
+
+
             $link = $crawlerService->addLink($username, $crawlerService->getInitialPath());
+
+
             $link->username = $username;
             assert(count($crawlerService->getLinkList($username)), "No links for $username");
             assert($crawlerService->getUnvisitedLink($username));
@@ -160,6 +192,8 @@ class CrawlCommand extends Command
                     dd($link);
                     continue;
                 }
+
+                $crawlerService->setRoute($link);
 
                 $io->info(sprintf("%s/%d %s%s as %s (from %s)",
                     $link->getRoute(),
@@ -183,7 +217,7 @@ class CrawlCommand extends Command
                 }
             }
 
-            $key = $username."|".$crawlerService->getUserClass()."|".$crawlerService->getBaseUrl();
+            $key = $username."|".$crawlerService->getBaseUrl();
             $linksToCrawl[$key] = array_filter($crawlerService->getLinkList($username), fn (Link $link) => $link->testable());
             //            $userLinks = array_merge($userLinks, array_values($linksToCrawl));
             $table->addRow([$username, count($linksToCrawl[$key]), count($crawlerService->getLinkList($username))]);
@@ -200,7 +234,7 @@ class CrawlCommand extends Command
 
         file_put_contents($outputFilename, json_encode($linksToCrawl, JSON_UNESCAPED_LINE_TERMINATORS + JSON_PRETTY_PRINT + JSON_UNESCAPED_SLASHES));
         $io->success(sprintf("File $outputFilename written with %d usernames", count($linksToCrawl)));
-
+        
         $table = new Table($output);
         $table->setHeaders(['route','visits']);
         foreach ($crawlerService->getRouteVisits() as $routeName=>$visits) {
@@ -233,7 +267,7 @@ class CrawlCommand extends Command
         $client = $this->httpClient;
         $crawler = $client->request('GET', $this->startingLink);
 
-        dump($this->startingLink);
+        dump(startingLink: $this->startingLink);
 
         // Get the latest post in this category and display the titles
         $crawler->filter('h2 > a')->each(function ($node) {
@@ -372,7 +406,7 @@ At most, <comment>%s</comment> pages will be crawled.', $this->domain, $this->st
      *
      * @author  Joe Sexton <joe@webtipblog.com
      */
-    protected function authenticate($kernel, $client)
+    protected function XXauthenticate($kernel, $client)
     {
         //
         $crawler = $client->request('GET', 'https://github.com/');
@@ -486,6 +520,7 @@ At most, <comment>%s</comment> pages will be crawled.', $this->domain, $this->st
     {
         $link = preg_replace('/#.*/', '', $link); // strip off URL fragment
         if (empty($this->domainLinks[$link])) {
+            dd($link, $currentUrl);
             // check for routes that should only be indexed once
             // do this before we add the link to the domainLinks array since we check that array for duplicates...
             if (! $this->isDuplicateIgnoredRoute($link)) {

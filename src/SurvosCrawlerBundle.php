@@ -4,6 +4,7 @@ namespace Survos\CrawlerBundle;
 
 use Survos\CrawlerBundle\Command\CrawlCommand;
 use Survos\CrawlerBundle\Command\GenerateTestsCommand;
+use Survos\CrawlerBundle\Command\MakeSmokeTestCommand;
 use Survos\CrawlerBundle\Controller\CrawlerController;
 use Survos\CrawlerBundle\Services\CrawlerService;
 use Symfony\Component\Config\Definition\Configurator\DefinitionConfigurator;
@@ -32,7 +33,7 @@ class SurvosCrawlerBundle extends AbstractBundle
 //            ->setArgument('$bag', new Reference('parameter_bag'))
         ;
 
-        foreach ([CrawlCommand::class, GenerateTestsCommand::class] as $commandClass) {
+        foreach ([CrawlCommand::class, MakeSmokeTestCommand::class, GenerateTestsCommand::class] as $commandClass) {
             $builder->autowire($commandClass)
                 ->setAutoconfigured(true)
                 ->setPublic(true)
@@ -63,6 +64,7 @@ class SurvosCrawlerBundle extends AbstractBundle
             ->setArgument('$linkList', [])
             ->setArgument('$username', "")
             ->setArgument('$maxDepth', $config['max_depth'])
+            ->setArgument('$maxVisits', $config['max_per_route'])
 //            ->setArgument('$tokenStorage', new Reference('security.untracked_token_storage'))
             ->setArgument('$routesToIgnore', $config['routes_to_ignore'])
             ->setArgument('$pathsToIgnore', $config['paths_to_ignore'])

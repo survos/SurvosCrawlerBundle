@@ -2,6 +2,7 @@
     "name": "survos/crawler-bundle",
     "description": "Provides a way to create tests that crawl a site",
     "license": "MIT",
+    "keywords": ["dev", "symfony", "crawler", "testiong"],
     "authors": [
         {
             "name": "Tac Tacelosky",
@@ -19,13 +20,14 @@
         "symfony/console": "^6.4 || ^7.1",
         "symfony/security-bundle": "^6.4 || ^7.1",
         "symfony/http-client-contracts": "^3.5",
-        "doctrine/orm": "^3.3"
+        "doctrine/orm": "^3.3",
+        "symfony/routing": "^7.2",
+        "zenstruck/browser": "^1.9",
+        "nette/php-generator": "^4.1"
     },
     "require-dev": {
         "phpstan/phpstan": "^2.0",
-        "phpunit/phpunit": "^11.4",
-        "zenstruck/browser": "^1.9",
-        "nette/php-generator": "^4.1"
+        "phpunit/phpunit": "^12.1.4"
     },
     "autoload": {
         "psr-4": {

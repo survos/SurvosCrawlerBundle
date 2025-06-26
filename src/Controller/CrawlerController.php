@@ -12,13 +12,18 @@ use Symfony\Component\Routing\Attribute\Route;
 class CrawlerController extends AbstractController
 {
     public function __construct(
-        #[Autowire('%kernel.project_dir%')] private readonly string $projectDir
+        #[Autowire('%kernel.project_dir%')] private readonly string $projectDir,
+        #[Autowire('%kernel.environment')] private readonly string $env
     ) {
     }
 
     #[Route(path: '/crawlerdata', name: 'survos_crawler_data', methods: ['GET'])]
     public function results(CrawlerService $crawlerService): Response
     {
+        if ($this->env<>'dev') {
+            return new Response("survos_crawler_data is only available in dev");
+        }
+
         // hackish -- get the crawldata of the currently logged in user?
         $filename = $this->projectDir . '/tests/crawldata.json';
             if (!file_exists($filename)) {

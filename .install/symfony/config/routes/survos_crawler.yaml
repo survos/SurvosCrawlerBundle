@@ -1,5 +1,6 @@
-survos_crawler:
-  resource: '@SurvosCrawlerBundle/config/routes.yaml'
-  # consider adding /admin to this route and securing it in security.yaml
-  prefix: '/crawler'
-  base_url: 'https://hub.wip'
+when@dev: &crawler_dev
+  survos_crawler:
+    resource: '@SurvosCrawlerBundle/config/routes.yaml'
+    prefix: '/crawler'
+when@test: *crawler_dev
+

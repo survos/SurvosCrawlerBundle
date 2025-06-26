@@ -6,6 +6,7 @@ use App\Entity\User;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\Attributes\TestDox;
 use Psr\Log\LoggerInterface;
+use Survos\CrawlerBundle\Services\CrawlerService;
 use Symfony\Bundle\FrameworkBundle\KernelBrowser;
 use Symfony\Bundle\FrameworkBundle\Test\WebTestCase;
 use Symfony\Component\BrowserKit\Cookie;
@@ -29,12 +30,17 @@ class BaseVisitLinksTest extends WebTestCase
     private array $visibleLinks = [];
     private KernelBrowser $client;
     private ?string $username=null;
+    private ?string $userClassName = null;
 
-//    public function setUp(): void
-//    {
-//        parent::setUp();
-//        self::bootKernel();
-//    }
+    public function setUp(): void
+    {
+        parent::setUp();
+        self::bootKernel();
+        /** @var CrawlerService $crawlerService */
+//        $crawlerService = $this->getContainer()->get('survos.crawler_service');
+        $crawlerService = $this->getContainer()->get(CrawlerService::class);
+        $this->userClassName = $crawlerService->getUserClass();
+    }
 
     protected function createAuthenticatedClient(?string $username=null): KernelBrowser
     {
@@ -56,19 +62,23 @@ class BaseVisitLinksTest extends WebTestCase
         return $client;
     }
 
-    #[DataProvider('linksToVisit')]
-    #[TestDox('$username $url should return $expected')]
-    public function testWithLogin(?string $username, ?string $userClassName, string $url, int|string|null $expected): void
+//    #[DataProvider('linksToVisit')]
+//    #[TestDox('$username $url should return $expected')]
+    public function loginAsUserAndVisit(?string $username, string $url, int|string|null $expected): void
     {
         static $users = [];
+//        assert(is_int($expected), $expected);
 
         $browser = $this->browser();
 //        $client = static::createClient();
 
+//        dump(username: $username);
         if ($username && $username != "") {
             if (!array_key_exists($username, $users)) {
                 $container = static::getContainer();
-                $users[$username] = $container->get('doctrine')->getRepository($userClassName)->findOneBy(['email' => $username]);
+                $users[$username] = $container->get('doctrine')->getRepository(
+                    $this->userClassName
+                )->findOneBy(['email' => $username]);
             }
 
             $user = $users[$username];
@@ -117,13 +127,16 @@ class BaseVisitLinksTest extends WebTestCase
 //        $router = self::getContainer()->get(RouterInterface::class);
         $kernel = self::getContainer()->get('kernel');
         $crawldataFilename = $kernel->getProjectDir(). '/tests/crawldata.json';
-        assert(file_exists($crawldataFilename));
+        //assert(file_exists($crawldataFilename));
+        if(!file_exists($crawldataFilename)) {
+            return [];
+        }
         $crawldata = json_decode(file_get_contents($crawldataFilename));
 
         foreach ($crawldata as $username => $linksToCrawl) {
-            $array = explode("|",$username);
+            [$username, $startingLink] = explode("|",$username);
             foreach ($linksToCrawl as $path=>$info) {
-                yield $x[$username . '@' . $info->path] = [$array[0],$array[1], $info->path, 200];
+                yield $x[$username . '@' . $info->path] = [$username, $info->path, 200];
             }
         }
 //        return $x;
