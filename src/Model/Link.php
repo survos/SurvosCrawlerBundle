@@ -12,6 +12,7 @@ use function Symfony\Component\String\u;
 class Link
 {
     public const STATUS_IGNORED = 'ignored';
+    public const STATUS_ALREADY_VISITED = 'already_visited';
 
     public function __construct(
         public string $path,
@@ -184,6 +185,6 @@ class Link
 
     public function testable(): bool
     {
-        return $this->getSeen() && $this->getLinkStatus() <> self::STATUS_IGNORED;
+        return $this->getSeen() && !in_array($this->getLinkStatus(), [self::STATUS_IGNORED, self::STATUS_ALREADY_VISITED]);
     }
 }

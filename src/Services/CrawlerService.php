@@ -173,7 +173,7 @@ class CrawlerService
         return array_filter($this->getLinkList($username), fn (Link $link) => $link->isPending());
     }
 
-    public function getUnvisitedLink(?string $username): ?Link
+    public function         getUnvisitedLink(?string $username): ?Link
     {
         return current($this->getPendingLinks($username)) ?: null;
     }
@@ -230,22 +230,37 @@ class CrawlerService
             }
         }
 
-        $this->setRoute($link);
-
-        assert($link->getRoute(), "missing route " . json_encode($link));
-
-
         if  ($link->getVisits() >= $this->maxVisits) {
+            $link->setLinkStatus($link::STATUS_ALREADY_VISITED);
             return $link;
         }
+
+        // e.g. sais.wip/test-webhook
+        if (str_starts_with($link->getPath(), 'http')) {
+            $link->setLinkStatus($link::STATUS_IGNORED);
+            return $link;
+        }
+
+        $this->setRoute($link);
+
+        if (!$link->getRoute()) {
+            $link->setLinkStatus($link::STATUS_IGNORED);
+            return $link;
+            $link->setHtml('missing');
+            dd($link);
+        }
+        assert($link->getRoute(), "missing route  in path " . $link->getPath());
+
         $routeName = $link->getRoute();
         if (!array_key_exists($routeName, $this->routeVisits)) {
             $this->routeVisits[$routeName] = 0;
         }
-        $this->routeVisits[$routeName]++;
-        if  ($this->routeVisits[$routeName] >= $this->maxVisits) {
+
+        if  ($this->routeVisits[$routeName] > $this->maxVisits) {
+            $link->setLinkStatus($link::STATUS_ALREADY_VISITED);
             return $link;
         }
+        $this->routeVisits[$routeName]++;
 
         if ($this->isIgnoredPath($link->getPath())) {
             $link->setLinkStatus($link::STATUS_IGNORED);

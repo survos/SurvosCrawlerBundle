@@ -20,7 +20,7 @@ use Symfony\Component\DependencyInjection\Attribute\Autowire;
 use Symfony\Component\HttpKernel\Profiler\Profiler;
 use Symfony\Component\Routing\RouterInterface;
 
-#[AsCommand('survos:crawl:smoke', 'Generate the smoke test')]
+#[AsCommand('survos:make:smoke', 'Generate the smoke tests fromn RouteExtractor, crawlerBundle is more complete, since each user is checked.', hidden: true)]
 final class MakeSmokeTestCommand extends Command
 {
 

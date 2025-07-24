@@ -17,6 +17,7 @@ use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Console\Style\SymfonyStyle;
+use Symfony\Component\DependencyInjection\Attribute\Autowire;
 use Symfony\Component\DependencyInjection\ParameterBag\ParameterBagInterface;
 use Symfony\Component\DomCrawler\Crawler;
 use Symfony\Component\HttpFoundation\Cookie;
@@ -39,6 +40,7 @@ class CrawlCommand extends Command
         private ParameterBagInterface $bag,
         private CrawlerService $crawlerService,
         private RouterInterface $router,
+        #[Autowire('%kernel.environment%')] private string $env,
         ?string $name = null
     ) {
         parent::__construct($name);
@@ -121,7 +123,7 @@ class CrawlCommand extends Command
      */
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
-        
+
         $this->locale = $input->getOption('locale');
 
         $io = new SymfonyStyle($input, $output);
@@ -138,12 +140,22 @@ class CrawlCommand extends Command
         $crawlerService->resetLinkList();
 
         $routesToIgnore = $this->crawlerService->getRoutesToIgnore();
-       
+
+
+        $routes = RoutesExtractor::extractRoutesFromRouter($this->router);
+        foreach ($routes as $route) {
+            if (in_array($route["routeName"], $routesToIgnore)) {
+                continue;
+            }
+            $staticLinks[] = $route;
+        }
+
+
         // start with null, so that it is logged out.  Otherwise, it gets the last user!  BUG
         foreach ([null, ...$usernames] as $username) {
             //        foreach ($usernames as $user) {
             try {
-                if ($user = $this->crawlerService->getUser($username)) {
+                if ($username  && ($user = $this->crawlerService->getUser($username))) {
                     $username = $user->getUserIdentifier(); //assert that they're the same?
                     $crawlerService->authenticateClient($user);
                 }
@@ -159,22 +171,11 @@ class CrawlCommand extends Command
             $this->crawlerService->checkIfCrawlerClient();
             $io->info(sprintf("Crawling %s as %s", $crawlerService->getInitialPath(), $username ?: 'Visitor'));
 
-            $routes = RoutesExtractor::extractRoutesFromRouter($this->router);
-
-            foreach ($routes as $route) {
-                if (in_array($route["routeName"], $routesToIgnore)) {
-                    continue;
-                }
-                $link = $crawlerService->addLink($username, $route["routePath"]);
+            foreach ($staticLinks as $route) {
+                $link = $crawlerService->addLink($username, $route["routePath"], foundOn: '@smoke', route: $route["routeName"]);
             }
 
-            $staticLinks = [];
-            foreach ($staticLinks as $link) {
-                $link = $crawlerService->addLink($username, $link);
-            }
-
-
-            $link = $crawlerService->addLink($username, $crawlerService->getInitialPath());
+            $link = $crawlerService->addLink($username, $crawlerService->getInitialPath(), foundOn: '@initial');
 
 
             $link->username = $username;
@@ -217,7 +218,7 @@ class CrawlCommand extends Command
                 }
             }
 
-            $key = $username."|".$crawlerService->getBaseUrl();
+            $key = $username ."|".$crawlerService->getBaseUrl();
             $linksToCrawl[$key] = array_filter($crawlerService->getLinkList($username), fn (Link $link) => $link->testable());
             //            $userLinks = array_merge($userLinks, array_values($linksToCrawl));
             $table->addRow([$username, count($linksToCrawl[$key]), count($crawlerService->getLinkList($username))]);
@@ -233,14 +234,14 @@ class CrawlCommand extends Command
         //        }
 
         file_put_contents($outputFilename, json_encode($linksToCrawl, JSON_UNESCAPED_LINE_TERMINATORS + JSON_PRETTY_PRINT + JSON_UNESCAPED_SLASHES));
-        $io->success(sprintf("File $outputFilename written with %d usernames", count($linksToCrawl)));
-        
+
         $table = new Table($output);
         $table->setHeaders(['route','visits']);
         foreach ($crawlerService->getRouteVisits() as $routeName=>$visits) {
             $table->addRow([$routeName, $visits]);
         }
         $table->render();
+        $io->success(sprintf("File $outputFilename written with %d usernames", count($linksToCrawl)));
 
         return self::SUCCESS;
 
@@ -351,6 +352,10 @@ At most, <comment>%s</comment> pages will be crawled.', $this->domain, $this->st
         ];
         file_put_contents($fn, json_encode($results, JSON_PRETTY_PRINT + JSON_UNESCAPED_SLASHES));
         $output->writeln(sprintf("%d links searched, %s written with %d links.", $index, $fn, count($unique_routes)));
+
+        if ($this->env !== 'test') {
+            $output->writeln('WARNING: Environment is not set to test!');
+        }
 
         return self::SUCCESS;
     }

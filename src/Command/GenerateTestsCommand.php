@@ -23,7 +23,6 @@ final class GenerateTestsCommand extends Command
 {
 
     public function __construct(
-        private readonly RouterInterface                          $router,
         #[Autowire('%kernel.project_dir%/tests/')] private string $testRoot,
     )
     {
