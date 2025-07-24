@@ -175,15 +175,14 @@ class BaseVisitLinksTest extends WebTestCase
 
         if (0)
             try {
-                if ($route = $this->router->match($path)) {
-                    $controller = $route['_controller'];
-//                $reflection = new \ReflectionMethod($controller);
-                    $info['_route'] = $route['_route'];
-                    foreach (['_route', '_controller'] as $x) {
-                        unset($route[$x]);
-                    }
-                    $info['_route_parameters'] = $route;
-                }
+                // if ($route = $this->router->match($path)) {
+                //     $controller = $route['_controller'];
+                //     $info['_route'] = $route['_route'];
+                //     foreach (['_route', '_controller'] as $x) {
+                //         unset($route[$x]);
+                //     }
+                //     $info['_route_parameters'] = $route;
+                // }
             } catch (ResourceNotFoundException $exception) {
                 // @todo: check for /public
 
