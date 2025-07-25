@@ -398,10 +398,12 @@ At most, <comment>%s</comment> pages will be crawled.', $this->domain, $this->st
         }
     }
 
+    //@phpstan-ignore-next-line
     protected function createKernel(): Kernel
     {
         //        $rootDir = $this->bag->get('kernel.project_dir');
         //        require_once($rootDir . '/Kernel.php');
+        //@phpstan-ignore-next-line
         $kernel = new Kernel('test', true);
         return $kernel;
     }
