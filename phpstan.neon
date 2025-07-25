@@ -28,6 +28,12 @@ parameters:
 #        -
 #            message: '#.*NodeParentInterface\|null.*#'
 #            path: ./src/DependencyInjection/Providers
+        # -
+        #     message: '#.*NodeDefinition::children.*#'
+        #     path: ./src/*Bundle.php
         -
-            message: '#.*NodeDefinition::children.*#'
-            path: ./src/*Bundle.php
+            message: '#Method .+::createKernel\(\) has invalid return type App\\Kernel#'
+            path: ./src/Command/CrawlCommand.php
+        -
+            message: '#Instantiated class App\\Kernel not found#'
+            path: ./src/Command/CrawlCommand.php
